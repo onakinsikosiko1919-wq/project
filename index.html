@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ウマウマ動画</title>
+  <style>
+    body { margin: 0; font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f9f9f9; color: #0f0f0f; }
+    header { display: flex; justify-content: space-between; align-items: center; padding: 10px 24px; height: 56px; background-color: white; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100;}
+    .logo { font-size: 20px; font-weight: bold; cursor: pointer; }
+    .header-actions { display: flex; align-items: center; gap: 16px; position: relative; }
+    .create-btn { display: flex; align-items: center; gap: 8px; padding: 8px 16px; background-color: #f2f2f2; border: none; border-radius: 20px; font-size: 14px; font-weight: bold; cursor: pointer; }
+    .create-btn:hover { background-color: #e5e5e5; }
+    .dropdown-menu { display: none; position: absolute; top: 48px; right: 50px; background-color: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); width: 200px; z-index: 200; }
+    .dropdown-menu.active { display: block; }
+    .menu-item { padding: 12px 16px; display: flex; align-items: center; gap: 12px; cursor: pointer; font-size: 14px; }
+    .menu-item:hover { background-color: #f2f2f2; }
+    
+    /* ヘッダーのユーザー情報周りの修正 */
+    #userInfo { display: none; align-items: center; gap: 10px; }
+    #userProfileAvatar { width: 32px; height: 32px; border-radius: 50%; background-color: #065fd4; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; font-size: 16px; }
+    #channelNameDisplay { font-weight: bold; font-size: 14px; cursor: pointer; }
+    #channelNameDisplay:hover { text-decoration: underline; }
+
+    /* モーダル共通 */
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
+    .modal-overlay.active { display: flex; }
+    .modal-content { background-color: white; width: 90%; max-width: 960px; height: 80vh; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 24px 38px rgba(0,0,0,0.14); }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; border-bottom: 1px solid #e5e5e5; }
+    .modal-header h2 { margin: 0; font-size: 20px; }
+    .close-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: #606060; }
+
+    .step-1-area { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 40px; }
+    .upload-icon-circle { width: 120px; height: 120px; background-color: #f2f2f2; border-radius: 50%; display: flex; justify-content: center; align-items: center; margin-bottom: 24px; font-size: 60px; color: #606060; }
+    .select-file-btn { background-color: #0f0f0f; color: white; border: none; padding: 10px 24px; font-size: 14px; font-weight: bold; border-radius: 4px; cursor: pointer; }
+
+    .step-2-area { display: none; flex: 1; flex-direction: column; overflow-y: auto; }
+    .details-layout { display: flex; flex: 1; padding: 24px; gap: 24px; }
+    .form-area { flex: 2; display: flex; flex-direction: column; gap: 20px; }
+    .input-group label { font-size: 12px; color: #606060; margin-bottom: 8px; font-weight: bold; display: block; }
+    .input-group input[type="text"], .input-group input[type="file"], .input-group input[type="email"], .input-group input[type="password"], .input-group textarea { padding: 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 15px; width: 100%; box-sizing: border-box; }
+    .preview-area { flex: 1; background-color: #f9f9f9; padding: 16px; border-radius: 4px; height: fit-content; }
+    .preview-area video { width: 100%; border-radius: 4px; background-color: black; }
+    .modal-footer { display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; border-top: 1px solid #e5e5e5; }
+    .save-btn { background-color: #0f0f0f; color: white; border: none; padding: 10px 24px; font-size: 14px; font-weight: bold; border-radius: 20px; cursor: pointer; width: 100%; box-sizing: border-box; }
+
+    /* ログイン／新規登録モーダル */
+    .auth-modal-content { max-width: 400px; height: auto; }
+    .auth-body { padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+    .auth-error { color: #cc0000; font-size: 13px; display: none; }
+    .auth-switch { font-size: 13px; text-align: center; color: #606060; }
+    .auth-switch a { color: #065fd4; cursor: pointer; font-weight: bold; }
+    .google-btn { background-color: #4285F4; color: white; border: none; padding: 10px 24px; font-size: 14px; font-weight: bold; border-radius: 20px; cursor: pointer; width: 100%; display: flex; justify-content: center; align-items: center; gap: 10px; }
+    .google-btn:hover { background-color: #3367D6; }
+
+    /* ホーム・チャンネル共通レイアウト */
+    .home-container, .channel-container { max-width: 1280px; margin: 40px auto; padding: 0 24px; }
+    
+    /* 検索バー */
+    .search-bar { text-align: center; margin-bottom: 28px; }
+    .search-bar input { display: block; margin: 0 auto 14px; width: 100%; max-width: 460px; padding: 12px 18px; border: 1px solid #ccc; border-radius: 24px; font-size: 15px; box-sizing: border-box; }
+    .sort-controls { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+    .sort-btn { background-color: #f2f2f2; border: none; padding: 7px 16px; border-radius: 16px; font-size: 13px; font-weight: bold; color: #606060; cursor: pointer; }
+    .sort-btn.active { background-color: #0f0f0f; color: white; }
+
+    /* 動画一覧（ホーム・チャンネル画面） */
+    .list-heading { font-size: 18px; font-weight: bold; margin: 0 0 16px; text-align: center; }
+    .video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+    .grid-item { position: relative; cursor: pointer; }
+    .thumbnail-img { width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 12px; background-color: #000; pointer-events: none; }
+    .grid-item .grid-title { font-size: 15px; font-weight: bold; margin-top: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .grid-item .grid-author { font-size: 13px; color: #606060; margin-top: 4px; }
+    .grid-item:hover .thumbnail-img { border-radius: 0; transition: border-radius 0.3s; }
+    .empty-list-msg { color: #606060; font-size: 14px; text-align: center; width: 100%; }
+    .delete-video-btn { display: none; position: absolute; top: 8px; right: 8px; width: 28px; height: 28px; background-color: rgba(0,0,0,0.6); color: white; border: none; border-radius: 50%; font-size: 14px; cursor: pointer; }
+    .grid-item:hover .delete-video-btn { display: block; }
+
+    /* 視聴画面レイアウト（2カラム） */
+    .watch-layout { display: flex; gap: 24px; max-width: 1280px; margin: 24px auto; padding: 0 24px; align-items: flex-start; }
+    .watch-main { flex: 1; min-width: 0; }
+    .watch-sidebar { width: 350px; flex-shrink: 0; display: flex; flex-direction: column; gap: 12px; }
+    
+    @media (max-width: 1000px) {
+      .watch-layout { flex-direction: column; }
+      .watch-sidebar { width: 100%; }
+    }
+
+    .main-video-player { width: 100%; height: 100%; background-color: #000; outline: none; }
+    .video-meta-bar { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; }
+    .title-area { flex: 1; }
+    .video-title { font-size: 20px; font-weight: bold; margin: 0 0 8px 0; line-height: 1.4; }
+    .uploader-link { font-size: 14px; font-weight: bold; color: #0f0f0f; text-decoration: none; display: inline-block; padding: 8px 16px; background-color: #f2f2f2; border-radius: 20px; cursor: pointer; margin-bottom: 16px; }
+    .uploader-link:hover { background-color: #e5e5e5; }
+    
+    .meta-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    #viewCount { font-size: 14px; font-weight: bold; color: #606060; }
+    
+    /* 評価ボタン・PiPボタン */
+    .rate-btn, .pip-btn { background-color: #f2f2f2; border: none; border-radius: 20px; padding: 8px 16px; font-weight: bold; font-size: 14px; cursor: pointer; transition: background-color 0.2s ease; display: inline-flex; align-items: center; gap: 6px; }
+    .rate-btn:hover, .pip-btn:hover { background-color: #e5e5e5; }
+    .rate-btn:disabled { opacity: 0.5; cursor: default; }
+    .rate-btn.active-like { background-color: #0f0f0f; color: white; animation: popEffect 0.3s ease; }
+    .rate-btn.active-dislike { background-color: #0f0f0f; color: white; animation: popEffect 0.3s ease; }
+    
+    @keyframes popEffect {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.15); }
+      100% { transform: scale(1); }
+    }
+
+    /* サイドバー関連動画 */
+    .related-item { display: flex; gap: 12px; cursor: pointer; }
+    .related-item .thumbnail-img { width: 168px; aspect-ratio: 16/9; border-radius: 8px; flex-shrink: 0; }
+    .related-item .info { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+    .related-item .info-title { font-size: 14px; font-weight: bold; margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .related-item .info-author { font-size: 12px; color: #606060; }
+
+    /* ニックネーム・コメント欄 */
+    .nickname-area { margin: 20px 0 12px; }
+    .nickname-area label { font-size: 12px; color: #606060; font-weight: bold; display: block; margin-bottom: 6px; }
+    .nickname-area input { padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; width: 100%; max-width: 280px; box-sizing: border-box; }
+    .channel-badge { margin: 20px 0 12px; font-size: 13px; color: #606060; }
+
+    .comment-section { margin-top: 16px; padding-top: 24px; border-top: 1px solid #e5e5e5; }
+    .comment-section h3 { margin-top: 0; font-size: 18px; margin-bottom: 16px; }
+    .comment-input-area { display: flex; gap: 12px; margin-bottom: 32px; align-items: flex-start; }
+    .comment-avatar { width: 40px; height: 40px; border-radius: 50%; background-color: #065fd4; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0; }
+    .comment-input-area input { flex: 1; padding: 8px 0; border: none; border-bottom: 1px solid #ccc; font-size: 14px; outline: none; background: transparent; }
+    .comment-input-area input:focus { border-bottom: 2px solid #0f0f0f; padding-bottom: 7px; }
+    .comment-input-area button { background-color: #065fd4; color: white; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 14px; width: auto;}
+    .comment-input-area button:disabled { background-color: #ccc; cursor: not-allowed; }
+    .comment-list { display: flex; flex-direction: column; gap: 20px; }
+    .comment-item { display: flex; gap: 12px; }
+    .comment-content { flex: 1; }
+    .comment-content .comment-author { font-size: 13px; font-weight: bold; margin-bottom: 4px; }
+    .comment-content .comment-date { font-size: 12px; color: #606060; font-weight: normal; margin-left: 8px; }
+    .comment-content .comment-text { font-size: 14px; color: #0f0f0f; white-space: pre-wrap; line-height: 1.4; }
+    .comment-delete-btn { background: none; border: none; color: #909090; font-size: 12px; cursor: pointer; padding: 0; margin-top: 4px; }
+    .comment-delete-btn:hover { color: #cc0000; text-decoration: underline; }
+
+    /* ニコニコ風「弾幕」 */
+    .video-wrapper { position: relative; width: 100%; aspect-ratio: 16/9; margin-bottom: 12px; overflow: hidden; background-color: #000; border-radius: 12px; }
+    /* Document PiP が作動したときの全画面用スタイル */
+    .video-wrapper.in-pip { margin: 0; border-radius: 0; width: 100vw; height: 100vh; }
+    
+    .danmaku-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; overflow: hidden; z-index: 10; }
+    .danmaku-comment {
+      position: absolute; white-space: nowrap; font-size: 24px; font-weight: bold; color: white;
+      text-shadow: 1px 1px 2px #000, -1px 1px 2px #000, 1px -1px 2px #000, -1px -1px 2px #000;
+      animation: slideText 5s linear forwards;
+    }
+    @keyframes slideText {
+      0% { left: 100%; transform: translateX(0); }
+      100% { left: 0; transform: translateX(-100%); }
+    }
+    .danmaku-input-area { display: flex; gap: 8px; margin-bottom: 24px; }
+    .danmaku-input-area input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 20px; font-size: 14px; }
+    .danmaku-input-area button { background-color: #065fd4; color: white; border: none; padding: 10px 20px; border-radius: 20px; font-weight: bold; cursor: pointer; }
+    .danmaku-input-area button:disabled { background-color: #ccc; cursor: not-allowed; }
+  　.danmaku-input-area button:disabled { background-color: #ccc; cursor: not-allowed; }
+
+    /* ↓↓↓ ここから下に貼り付ける ↓↓↓ */
+    /* ========== スマホ用UI調整 ========== */
+    @media (max-width: 600px) {
+      /* 動画一覧を1列にして見やすくする */
+      .video-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+      /* ヘッダー周りをコンパクトにする */
+      .logo {
+        font-size: 16px;
+      }
+      .header-actions {
+        gap: 8px;
+      }
+      .create-btn {
+        padding: 6px 10px;
+        font-size: 12px;
+      }
+      /* モーダル（アップロードやログイン画面）の幅をスマホに合わせる */
+      .modal-content {
+        width: 95%;
+        height: 90vh;
+      }
+      /* 視聴画面のタイトルなどをスマホサイズに */
+      .video-title {
+        font-size: 16px;
+      }
+    }
+    /* ↑↑↑ ここまで ↑↑↑ */
+
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo" id="logoHome">▶ ウマウマ動画（ベータ版）</div>
+    <div class="header-actions">
+      <button id="createBtn" class="create-btn">＋ 作成</button>
+      <div id="createMenu" class="dropdown-menu">
+        <div id="uploadMenuBtn" class="menu-item">▶ 動画をアップロード</div>
+      </div>
+      <button id="loginOpenBtn" class="create-btn">ログイン</button>
+      <div id="userInfo">
+        <!-- ログインアイコンとプロフィール導線を追加 -->
+        <div id="userProfileAvatar" title="マイプロフィールを見る"></div>
+        <span id="channelNameDisplay" title="マイプロフィールを見る"></span>
+        <button id="logoutBtn" class="create-btn">ログアウト</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ホーム画面 -->
+  <div id="homeScreen" class="home-container">
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="検索...">
+      <div class="sort-controls">
+        <button id="sortNewestBtn" class="sort-btn active">新着順</button>
+        <button id="sortPopularBtn" class="sort-btn">人気順</button>
+      </div>
+    </div>
+    <div id="videoGrid" class="video-grid">
+      <p class="empty-list-msg">読み込み中...</p>
+    </div>
+  </div>
+
+  <!-- チャンネル（プロフィール）専用画面 -->
+  <div id="channelScreen" class="channel-container" style="display: none;">
+    <h2 id="channelPageTitle" class="list-heading" style="font-size:24px; text-align:left; margin-bottom:24px;"></h2>
+    <div id="channelGrid" class="video-grid"></div>
+  </div>
+
+  <!-- 視聴画面（2カラムレイアウト） -->
+  <div id="watchScreen" style="display: none;">
+    <div class="watch-layout">
+      <!-- 左側：動画本体とコメント -->
+      <div class="watch-main">
+        <div class="video-wrapper">
+          <video id="mainVideo" class="main-video-player" controls></video>
+          <div id="danmakuContainer" class="danmaku-container"></div>
+        </div>
+
+       <div class="video-meta-bar">
+          <div class="title-area">
+            <h1 class="video-title" id="mainTitle">動画のタイトル</h1>
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+              <div id="uploaderName" class="uploader-link" style="margin-bottom: 0;">チャンネル名</div>
+              <button id="blockUserBtn" class="rate-btn" style="font-size: 12px; padding: 4px 10px; display: none;">🚫 ブロック</button>
+            </div>
+          </div>
+          <div class="meta-actions">
+            <span id="viewCount">- 回視聴</span>
+            <button id="likeBtn" class="rate-btn" disabled>👍 <span id="likeCount">0</span></button>
+            <button id="dislikeBtn" class="rate-btn" disabled>👎 <span id="dislikeCount">0</span></button>
+            <button id="reportBtn" class="rate-btn" style="color: #cc0000;">🚨 通報</button>
+            <button id="pipBtn" class="pip-btn">◱ PiPで弾幕再生</button>
+          </div>
+        </div>
+
+        <div class="danmaku-input-area">
+          <input type="text" id="danmakuInput" placeholder="動画の今の時間に弾幕を流す...">
+          <button id="danmakuSubmitBtn" disabled>弾幕を送信</button>
+        </div>
+
+        <!-- コメントエリア -->
+        <div class="nickname-area" id="nicknameArea">
+          <label for="nicknameInput">お名前（ニックネーム）</label>
+          <input type="text" id="nicknameInput" placeholder="未入力の場合は「ゲスト」">
+        </div>
+        <div class="channel-badge" id="channelBadge" style="display:none;"></div>
+
+        <div class="comment-section">
+          <h3>コメント</h3>
+          <div class="comment-input-area">
+            <div class="comment-avatar" id="commentAvatar">U</div>
+            <input type="text" id="commentInput" placeholder="コメントを追加...">
+            <button id="commentSubmitBtn" disabled>コメント</button>
+          </div>
+          <div id="commentList" class="comment-list"></div>
+        </div>
+      </div>
+
+      <!-- 右側：関連動画サイドバー -->
+      <div class="watch-sidebar" id="relatedVideosSidebar">
+        <!-- 関連動画がここに入ります -->
+      </div>
+    </div>
+  </div>
+
+  <!-- アップロード用モーダル -->
+  <div id="uploadModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modalTitle">動画のアップロード</h2>
+        <button id="closeModalBtn" class="close-btn">✕</button>
+      </div>
+
+      <div id="step1Area" class="step-1-area">
+        <div class="upload-icon-circle">⬆️</div>
+        <p>アップロードする動画ファイルを選択してください</p>
+        <input type="file" id="fileInput" accept="video/*" style="display: none;">
+        <button id="selectFileBtn" class="select-file-btn">ファイルを選択</button>
+      </div>
+
+      <div id="step2Area" class="step-2-area">
+        <div class="details-layout">
+          <div class="form-area">
+            <div class="input-group">
+              <label>タイトル (必須)</label>
+              <input type="text" id="videoTitleInput">
+            </div>
+            <div class="input-group">
+              <label>説明</label>
+              <textarea placeholder="動画の説明を入力"></textarea>
+            </div>
+            <div class="input-group">
+              <label>サムネイル画像 (任意)</label>
+              <input type="file" id="thumbInput" accept="image/*">
+            </div>
+          </div>
+          <div class="preview-area">
+            <video id="previewVideo" controls></video>
+            <p style="font-size: 12px; color: #606060;">ファイル名: <span id="previewFileName"></span></p>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <div></div>
+          <div style="width: 100%;">
+            <button id="saveBtn" class="save-btn" style="width: 100%;">保存して公開</button>
+            <button id="backModalBtn" class="back-btn" style="width: 100%; margin-top: 8px; text-align: center;">戻る</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ログイン／新規登録モーダル -->
+  <div id="authModal" class="modal-overlay">
+    <div class="modal-content auth-modal-content">
+      <div class="modal-header">
+        <h2 id="authModalTitle">ログイン</h2>
+        <button id="closeAuthModalBtn" class="close-btn">✕</button>
+      </div>
+      <div class="auth-body">
+        <div class="input-group" id="signupNameGroup" style="display:none;">
+          <label>チャンネル名</label>
+          <input type="text" id="authChannelName" placeholder="表示される名前">
+        </div>
+        <div class="input-group">
+          <label>メールアドレス</label>
+          <input type="email" id="authEmail">
+        </div>
+        <div class="input-group">
+          <label>パスワード（6文字以上）</label>
+          <input type="password" id="authPassword">
+        </div>
+        <p class="auth-error" id="authErrorMsg"></p>
+        <button id="authSubmitBtn" class="save-btn">メールアドレスでログイン</button>
+        
+        <hr style="margin: 8px 0; border: none; border-top: 1px solid #e5e5e5;">
+        
+        <!-- Googleログインボタン -->
+        <button id="googleAuthBtn" class="google-btn">
+          <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#fff" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path fill="#fff" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path fill="#fff" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path fill="#fff" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+          Googleでログイン
+        </button>
+
+        <p class="auth-switch">
+          <span id="authToggleText">アカウントをお持ちでない方は</span>
+          <a id="authToggleLink">新規登録</a>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getStorage, ref, uploadBytes, uploadBytesResumable, getDownloadURL, listAll, getMetadata, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+    import { getFirestore, collection, addDoc, query, where, onSnapshot, serverTimestamp, doc, getDoc, setDoc, updateDoc, deleteDoc, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDvZtc5bs5rb5Xtrel3mVMoTiqHH4LoVkM",
+      authDomain: "testo-movie-site.firebaseapp.com",
+      projectId: "testo-movie-site",
+      storageBucket: "testo-movie-site.firebasestorage.app",
+      messagingSenderId: "406733456438",
+      appId: "1:406733456438:web:60604213408ddd8d470497",
+      measurementId: "G-HECH8H7WSL"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const storage = getStorage(app);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+    const googleProvider = new GoogleAuthProvider(); 
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str == null ? '' : String(str);
+      return div.innerHTML;
+    }
+    function statsDocId(path) {
+      return path.replace(/\//g, '__');
+    }
+
+    // ==========================================
+    // UI要素の取得
+    // ==========================================
+    const logoHome = document.getElementById('logoHome');
+    const createBtn = document.getElementById('createBtn');
+    const createMenu = document.getElementById('createMenu');
+    const uploadMenuBtn = document.getElementById('uploadMenuBtn');
+    const uploadModal = document.getElementById('uploadModal');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const step1Area = document.getElementById('step1Area');
+    const step2Area = document.getElementById('step2Area');
+    const selectFileBtn = document.getElementById('selectFileBtn');
+    const fileInput = document.getElementById('fileInput');
+    const thumbInput = document.getElementById('thumbInput');
+    const videoTitleInput = document.getElementById('videoTitleInput');
+    const previewFileName = document.getElementById('previewFileName');
+    const previewVideo = document.getElementById('previewVideo');
+    const backModalBtn = document.getElementById('backModalBtn');
+    const saveBtn = document.getElementById('saveBtn');
+
+    const homeScreen = document.getElementById('homeScreen');
+    const channelScreen = document.getElementById('channelScreen');
+    const watchScreen = document.getElementById('watchScreen');
+    
+    const videoGrid = document.getElementById('videoGrid');
+    const channelGrid = document.getElementById('channelGrid');
+    const channelPageTitle = document.getElementById('channelPageTitle');
+    const searchInput = document.getElementById('searchInput');
+    const sortNewestBtn = document.getElementById('sortNewestBtn');
+    const sortPopularBtn = document.getElementById('sortPopularBtn');
+    
+    const mainVideo = document.getElementById('mainVideo');
+    const mainTitle = document.getElementById('mainTitle');
+    const uploaderNameEl = document.getElementById('uploaderName');
+    const danmakuContainer = document.getElementById('danmakuContainer');
+    const relatedVideosSidebar = document.getElementById('relatedVideosSidebar');
+
+    const danmakuInput = document.getElementById('danmakuInput');
+    const danmakuSubmitBtn = document.getElementById('danmakuSubmitBtn');
+    let videoComments = [];
+    let lastTime = 0;
+
+    const commentInput = document.getElementById('commentInput');
+    const commentSubmitBtn = document.getElementById('commentSubmitBtn');
+    const commentList = document.getElementById('commentList');
+    const commentAvatar = document.getElementById('commentAvatar');
+
+    const nicknameArea = document.getElementById('nicknameArea');
+    const nicknameInput = document.getElementById('nicknameInput');
+    const channelBadge = document.getElementById('channelBadge');
+
+    const viewCountEl = document.getElementById('viewCount');
+    const likeBtn = document.getElementById('likeBtn');
+    const likeCountEl = document.getElementById('likeCount');
+    const dislikeBtn = document.getElementById('dislikeBtn');
+    const dislikeCountEl = document.getElementById('dislikeCount');
+    const pipBtn = document.getElementById('pipBtn');
+    const blockUserBtn = document.getElementById('blockUserBtn');
+    const reportBtn = document.getElementById('reportBtn');
+    let currentUserBlocks = []; // 自分がブロックした人のUIDリスト
+
+    // ログイン関連
+    const loginOpenBtn = document.getElementById('loginOpenBtn');
+    const userInfo = document.getElementById('userInfo');
+    const channelNameDisplay = document.getElementById('channelNameDisplay');
+    const userProfileAvatar = document.getElementById('userProfileAvatar'); // 追加
+    const logoutBtn = document.getElementById('logoutBtn');
+    const authModal = document.getElementById('authModal');
+    const closeAuthModalBtn = document.getElementById('closeAuthModalBtn');
+    const authModalTitle = document.getElementById('authModalTitle');
+    const signupNameGroup = document.getElementById('signupNameGroup');
+    const authChannelName = document.getElementById('authChannelName');
+    const authEmail = document.getElementById('authEmail');
+    const authPassword = document.getElementById('authPassword');
+    const authSubmitBtn = document.getElementById('authSubmitBtn');
+    const googleAuthBtn = document.getElementById('googleAuthBtn');
+    const authErrorMsg = document.getElementById('authErrorMsg');
+    const authToggleText = document.getElementById('authToggleText');
+    const authToggleLink = document.getElementById('authToggleLink');
+
+    let currentVideoId = "";
+    let unsubscribeComments = null;
+    let currentUser = null; 
+    
+    // 評価トグル用の状態管理
+    let hasLiked = false;
+    let hasDisliked = false;
+
+    nicknameInput.value = localStorage.getItem('mytube_nickname') || '';
+    updateAvatarLetter();
+    nicknameInput.addEventListener('input', () => {
+      localStorage.setItem('mytube_nickname', nicknameInput.value.trim());
+      updateAvatarLetter();
+    });
+    function updateAvatarLetter() {
+      const name = getNickname();
+      commentAvatar.textContent = name.charAt(0).toUpperCase();
+    }
+    function getNickname() {
+      if (currentUser) return currentUser.channelName;
+      return nicknameInput.value.trim() || 'ゲスト';
+    }
+    function getAuthorUid() {
+      return currentUser ? currentUser.uid : null;
+    }
+
+    // ==========================================
+    // マイプロフィール表示機能
+    // ==========================================
+    function showMyProfile() {
+      if (!currentUser) return;
+      homeScreen.style.display = 'none';
+      watchScreen.style.display = 'none';
+      channelScreen.style.display = 'block';
+      
+      channelPageTitle.textContent = 'マイプロフィール（' + currentUser.channelName + '）';
+      const userVideos = allVideos.filter(v => v.uploaderUid === currentUser.uid);
+      renderGrid(userVideos, channelGrid);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    userProfileAvatar.addEventListener('click', showMyProfile);
+    channelNameDisplay.addEventListener('click', showMyProfile);
+
+
+    // ==========================================
+    // 認証処理（メール＆Google）
+    // ==========================================
+    let authMode = 'login';
+    loginOpenBtn.addEventListener('click', () => {
+      authMode = 'login';
+      updateAuthModalUI();
+      authEmail.value = '';
+      authPassword.value = '';
+      authChannelName.value = '';
+      authModal.classList.add('active');
+    });
+    closeAuthModalBtn.addEventListener('click', () => authModal.classList.remove('active'));
+
+    authToggleLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      authMode = authMode === 'login' ? 'signup' : 'login';
+      updateAuthModalUI();
+    });
+
+    function updateAuthModalUI() {
+      authErrorMsg.style.display = 'none';
+      if (authMode === 'signup') {
+        authModalTitle.textContent = '新規登録';
+        signupNameGroup.style.display = 'block';
+        authSubmitBtn.textContent = 'メールアドレスで登録';
+        authToggleText.textContent = 'すでにアカウントをお持ちの方は';
+        authToggleLink.textContent = 'ログイン';
+      } else {
+        authModalTitle.textContent = 'ログイン';
+        signupNameGroup.style.display = 'none';
+        authSubmitBtn.textContent = 'メールアドレスでログイン';
+        authToggleText.textContent = 'アカウントをお持ちでない方は';
+        authToggleLink.textContent = '新規登録';
+      }
+    }
+
+    authSubmitBtn.addEventListener('click', async () => {
+      const email = authEmail.value.trim();
+      const password = authPassword.value;
+      if (!email || !password) return;
+
+      authSubmitBtn.disabled = true;
+      authErrorMsg.style.display = 'none';
+      try {
+        if (authMode === 'signup') {
+          const channelName = authChannelName.value.trim() || 'ゲストチャンネル';
+          const cred = await createUserWithEmailAndPassword(auth, email, password);
+          await setDoc(doc(db, 'users', cred.user.uid), { channelName, email, createdAt: serverTimestamp() });
+        } else {
+          await signInWithEmailAndPassword(auth, email, password);
+        }
+        authModal.classList.remove('active');
+      } catch (error) {
+        authErrorMsg.textContent = "ログインに失敗しました。メールアドレスとパスワードを確認してください。";
+        authErrorMsg.style.display = 'block';
+      } finally {
+        authSubmitBtn.disabled = false;
+      }
+    });
+
+    googleAuthBtn.addEventListener('click', async () => {
+      authErrorMsg.style.display = 'none';
+      try {
+        const result = await signInWithPopup(auth, googleProvider);
+        const user = result.user;
+        const userRef = doc(db, 'users', user.uid);
+        const snap = await getDoc(userRef);
+        if (!snap.exists()) {
+          await setDoc(userRef, {
+            channelName: user.displayName || 'Googleユーザー',
+            email: user.email,
+            createdAt: serverTimestamp()
+          });
+        }
+        authModal.classList.remove('active');
+      } catch (error) {
+        authErrorMsg.textContent = 'Googleログインに失敗しました。';
+        authErrorMsg.style.display = 'block';
+      }
+    });
+
+    logoutBtn.addEventListener('click', () => signOut(auth));
+
+   onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        let channelName = 'ゲストチャンネル';
+        currentUserBlocks = []; // リセット
+        try {
+          const snap = await getDoc(doc(db, 'users', user.uid));
+          if (snap.exists()) {
+            channelName = snap.data().channelName;
+            // データベースからブロックリストを取得（なければ空の配列）
+            currentUserBlocks = snap.data().blockedUids || [];
+          }
+        } catch (error) {
+          console.error("ユーザー情報の取得に失敗:", error);
+          channelName = user.displayName || '名無しユーザー';
+        }
+
+        currentUser = { uid: user.uid, channelName };
+        loginOpenBtn.style.display = 'none'; // ログインボタンを隠す
+        userInfo.style.display = 'flex'; // アイコンエリアを表示する
+        channelNameDisplay.textContent = channelName;
+        userProfileAvatar.textContent = channelName.charAt(0).toUpperCase(); // ヘッダーアイコン更新
+        nicknameArea.style.display = 'none';
+        channelBadge.style.display = 'block';
+        channelBadge.textContent = '「' + channelName + '」としてコメントします';
+      } else {
+        currentUser = null;
+        loginOpenBtn.style.display = 'inline-flex';
+        userInfo.style.display = 'none';
+        nicknameArea.style.display = 'block';
+        channelBadge.style.display = 'none';
+      }
+      updateAvatarLetter();
+      loadVideoList(); 
+    });
+
+    // ==========================================
+    // 動画一覧（Storage） ＋ サムネイル表示
+    // ==========================================
+    let allVideos = []; 
+    let currentSort = 'newest';
+
+    async function loadVideoList() {
+      videoGrid.innerHTML = '<p class="empty-list-msg">読み込み中...</p>';
+      const listRef = ref(storage, 'videos/');
+      try {
+        const res = await listAll(listRef);
+        const items = res.items.slice().reverse();
+        allVideos = [];
+        for (const itemRef of items) {
+          const [url, metadata] = await Promise.all([
+            getDownloadURL(itemRef),
+            getMetadata(itemRef)
+          ]);
+          const title = (metadata.customMetadata && metadata.customMetadata.title) || itemRef.name;
+          const uploaderUid = (metadata.customMetadata && metadata.customMetadata.uploaderUid) || null;
+          const uploaderName = (metadata.customMetadata && metadata.customMetadata.uploaderName) || 'ゲスト';
+          const thumbUrl = (metadata.customMetadata && metadata.customMetadata.thumbUrl) || null;
+          
+          allVideos.push({ url, title, itemRef, uploaderUid, uploaderName, thumbUrl });
+        }
+        applyFilterAndSort();
+      } catch (error) {
+        videoGrid.innerHTML = '<p class="empty-list-msg">一覧の読み込みに失敗しました。</p>';
+      }
+    }
+
+    async function applyFilterAndSort() {
+      const keyword = searchInput.value.trim().toLowerCase();
+      let list = keyword ? allVideos.filter(v => v.title.toLowerCase().includes(keyword)) : allVideos.slice();
+
+      if (currentSort === 'popular') {
+        const withScore = await Promise.all(list.map(async (v) => {
+          try {
+            const statsSnap = await getDoc(doc(db, 'videoStats', statsDocId(v.itemRef.fullPath)));
+            const data = statsSnap.exists() ? statsSnap.data() : { views: 0, likes: 0 };
+            return { ...v, score: (data.views || 0) + (data.likes || 0) * 3 };
+          } catch {
+            return { ...v, score: 0 };
+          }
+        }));
+        withScore.sort((a, b) => b.score - a.score);
+        renderGrid(withScore, videoGrid);
+      } else {
+        renderGrid(list, videoGrid);
+      }
+    }
+
+    searchInput.addEventListener('input', () => {
+      homeScreen.style.display = 'block';
+      channelScreen.style.display = 'none';
+      watchScreen.style.display = 'none';
+      applyFilterAndSort();
+    });
+    
+    sortNewestBtn.addEventListener('click', () => {
+      currentSort = 'newest';
+      sortNewestBtn.classList.add('active'); sortPopularBtn.classList.remove('active');
+      applyFilterAndSort();
+    });
+    
+    sortPopularBtn.addEventListener('click', () => {
+      currentSort = 'popular';
+      sortPopularBtn.classList.add('active'); sortNewestBtn.classList.remove('active');
+      applyFilterAndSort();
+    });
+
+    function renderGrid(list, container) {
+      if (list.length === 0) {
+        container.innerHTML = '<p class="empty-list-msg">動画が見つかりません。</p>';
+        return;
+      }
+      container.innerHTML = '';
+      list.forEach(v => {
+        const canDelete = currentUser && v.uploaderUid && currentUser.uid === v.uploaderUid;
+        const gridItem = document.createElement('div');
+        gridItem.className = 'grid-item';
+        
+        const mediaHtml = v.thumbUrl 
+          ? `<img src="${v.thumbUrl}" class="thumbnail-img">` 
+          : `<video src="${v.url}" class="thumbnail-img" muted preload="metadata"></video>`;
+
+        gridItem.innerHTML = `
+          ${mediaHtml}
+          <div class="grid-title">${escapeHtml(v.title)}</div>
+          <div class="grid-author">${escapeHtml(v.uploaderName)}</div>
+          ${canDelete ? '<button class="delete-video-btn" title="この動画を削除">🗑</button>' : ''}
+        `;
+        gridItem.addEventListener('click', () => watchVideo(v));
+
+        const deleteBtn = gridItem.querySelector('.delete-video-btn');
+        if (deleteBtn) {
+          deleteBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            if (!confirm(`「${v.title}」を削除しますか？`)) return;
+            try { await deleteObject(v.itemRef); loadVideoList(); } catch (error) {}
+          });
+        }
+        container.appendChild(gridItem);
+      });
+    }
+
+    loadVideoList();
+
+    // ==========================================
+    // チャンネルページ遷移機能
+    // ==========================================
+    uploaderNameEl.addEventListener('click', () => {
+      const uid = uploaderNameEl.dataset.uid;
+      const name = uploaderNameEl.textContent;
+      if (!uid || uid === 'null') return; 
+      
+      homeScreen.style.display = 'none';
+      watchScreen.style.display = 'none';
+      channelScreen.style.display = 'block';
+      
+      channelPageTitle.textContent = name + ' のアップロード動画';
+      const userVideos = allVideos.filter(v => v.uploaderUid === uid);
+      renderGrid(userVideos, channelGrid);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      
+      const isStandardPiP = document.pictureInPictureElement === mainVideo;
+      const isDocumentPiP = ('documentPictureInPicture' in window) && window.documentPictureInPicture.window;
+      if (!isStandardPiP && !isDocumentPiP) {
+        mainVideo.pause();
+        mainVideo.src = "";
+      }
+    });
+
+    // ==========================================
+    // サイドバー（関連動画）描画
+    // ==========================================
+    function renderSidebar(excludePath) {
+      relatedVideosSidebar.innerHTML = '';
+      const others = allVideos.filter(v => v.itemRef.fullPath !== excludePath);
+      others.slice(0, 10).forEach(v => {
+        const item = document.createElement('div');
+        item.className = 'related-item';
+        const mediaHtml = v.thumbUrl 
+          ? `<img src="${v.thumbUrl}" class="thumbnail-img">` 
+          : `<video src="${v.url}" class="thumbnail-img" muted preload="metadata"></video>`;
+          
+        item.innerHTML = `
+          ${mediaHtml}
+          <div class="info">
+            <div class="info-title">${escapeHtml(v.title)}</div>
+            <div class="info-author">${escapeHtml(v.uploaderName)}</div>
+          </div>
+        `;
+        item.addEventListener('click', () => watchVideo(v));
+        relatedVideosSidebar.appendChild(item);
+      });
+    }
+
+    // ==========================================
+    // 画面切り替え（視聴・ホーム）
+    // ==========================================
+    async function watchVideo(videoData) {
+      if ('documentPictureInPicture' in window && window.documentPictureInPicture.window) {
+        window.documentPictureInPicture.window.close();
+      }
+
+      homeScreen.style.display = 'none';
+      channelScreen.style.display = 'none';
+      watchScreen.style.display = 'block';
+
+      mainVideo.src = videoData.url;
+      mainTitle.textContent = videoData.title;
+      uploaderNameEl.textContent = videoData.uploaderName;
+      uploaderNameEl.dataset.uid = videoData.uploaderUid;
+      
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      mainVideo.play();
+
+      currentVideoId = videoData.itemRef.fullPath;
+      commentInput.value = ""; commentSubmitBtn.disabled = true;
+      danmakuContainer.innerHTML = ''; videoComments = []; lastTime = 0;
+      danmakuInput.value = ""; danmakuSubmitBtn.disabled = true;
+
+      // 動画を開くたびに評価状態をリセット
+      hasLiked = false;
+      hasDisliked = false;
+      likeBtn.disabled = true; dislikeBtn.disabled = true;
+      likeBtn.classList.remove('active-like'); dislikeBtn.classList.remove('active-dislike');
+      viewCountEl.textContent = '- 回視聴'; likeCountEl.textContent = '0'; dislikeCountEl.textContent = '0';
+
+      loadComments();
+      await loadStats(); // ここで再生回数が+1されます
+      renderSidebar(currentVideoId);
+    }
+
+    logoHome.addEventListener('click', goHome);
+
+    function goHome() {
+      uploadModal.classList.remove('active');
+      createMenu.classList.remove('active');
+      watchScreen.style.display = 'none';
+      channelScreen.style.display = 'none';
+      homeScreen.style.display = 'block';
+      
+      const isStandardPiP = document.pictureInPictureElement === mainVideo;
+      const isDocumentPiP = ('documentPictureInPicture' in window) && window.documentPictureInPicture.window;
+      if (!isStandardPiP && !isDocumentPiP) {
+        mainVideo.pause();
+        mainVideo.src = "";
+      }
+      
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      loadVideoList();
+    }
+
+    // ==========================================
+    // PiP（ピクチャーインピクチャー）機能
+    // ==========================================
+    pipBtn.addEventListener('click', async () => {
+      if ('documentPictureInPicture' in window) {
+        try {
+          if (window.documentPictureInPicture.window) {
+            window.documentPictureInPicture.window.close();
+            return;
+          }
+
+          const pipWindow = await window.documentPictureInPicture.requestWindow({
+            width: mainVideo.clientWidth || 640,
+            height: mainVideo.clientHeight || 360,
+          });
+
+          [...document.styleSheets].forEach((styleSheet) => {
+            try {
+              const cssRules = [...styleSheet.cssRules].map((rule) => rule.cssText).join('');
+              const style = document.createElement('style');
+              style.textContent = cssRules;
+              pipWindow.document.head.appendChild(style);
+            } catch (e) {
+              const link = document.createElement('link');
+              link.rel = 'stylesheet';
+              link.type = styleSheet.type;
+              link.media = styleSheet.media;
+              link.href = styleSheet.href;
+              pipWindow.document.head.appendChild(link);
+            }
+          });
+
+          const videoWrapper = document.querySelector('.video-wrapper');
+          videoWrapper.classList.add('in-pip');
+          pipWindow.document.body.appendChild(videoWrapper);
+          pipWindow.document.body.style.margin = '0';
+          pipWindow.document.body.style.overflow = 'hidden';
+          pipWindow.document.body.style.backgroundColor = '#000';
+
+          pipWindow.addEventListener('pagehide', () => {
+            videoWrapper.classList.remove('in-pip');
+            const watchMain = document.querySelector('.watch-main');
+            watchMain.insertBefore(videoWrapper, document.querySelector('.video-meta-bar'));
+          });
+
+        } catch (error) {
+          console.error('Document PiP エラー:', error);
+        }
+      } 
+      else if (document.pictureInPictureEnabled) {
+        try {
+          if (document.pictureInPictureElement) {
+            await document.exitPictureInPicture();
+          } else {
+            alert('お使いのブラウザは「弾幕付きのPiP」に未対応です。動画のみのPiPになります。（ChromeやEdgeをご利用ください）');
+            await mainVideo.requestPictureInPicture();
+          }
+        } catch (error) {
+          console.error('PiPエラー:', error);
+        }
+      } else {
+        alert('お使いのブラウザはPiP機能をサポートしていません。');
+      }
+    });
+
+    // ==========================================
+    // 再生回数・高評価／低評価（トグル対応）
+    // ==========================================
+    async function loadStats() {
+      const statsRef = doc(db, 'videoStats', statsDocId(currentVideoId));
+      try {
+        const snap = await getDoc(statsRef);
+        if (!snap.exists()) {
+          // 初回再生時
+          await setDoc(statsRef, { views: 1, likes: 0, dislikes: 0 });
+          viewCountEl.textContent = '1 回視聴';
+          likeCountEl.textContent = '0';
+          dislikeCountEl.textContent = '0';
+        } else {
+          // 動画を開くたびに再生回数を+1する処理
+          const data = snap.data();
+          await updateDoc(statsRef, { views: increment(1) });
+          viewCountEl.textContent = ((data.views || 0) + 1) + ' 回視聴';
+          likeCountEl.textContent = data.likes || 0;
+          dislikeCountEl.textContent = data.dislikes || 0;
+        }
+      } catch (error) { viewCountEl.textContent = '-'; } 
+      finally { likeBtn.disabled = false; dislikeBtn.disabled = false; }
+    }
+
+    likeBtn.addEventListener('click', async () => {
+      if (!currentVideoId) return;
+      likeBtn.disabled = true;
+      try {
+        const statsRef = doc(db, 'videoStats', statsDocId(currentVideoId));
+        if (!hasLiked) {
+          // 高評価を追加
+          await updateDoc(statsRef, { likes: increment(1) });
+          likeCountEl.textContent = (parseInt(likeCountEl.textContent, 10) || 0) + 1;
+          likeBtn.classList.add('active-like');
+          hasLiked = true;
+          
+          // もし低評価が押されていたら解除する
+          if (hasDisliked) {
+            await updateDoc(statsRef, { dislikes: increment(-1) });
+            dislikeCountEl.textContent = Math.max(0, (parseInt(dislikeCountEl.textContent, 10) || 0) - 1);
+            dislikeBtn.classList.remove('active-dislike');
+            hasDisliked = false;
+          }
+        } else {
+          // 高評価を解除
+          await updateDoc(statsRef, { likes: increment(-1) });
+          likeCountEl.textContent = Math.max(0, (parseInt(likeCountEl.textContent, 10) || 0) - 1);
+          likeBtn.classList.remove('active-like');
+          hasLiked = false;
+        }
+      } catch (error) {} 
+      finally { likeBtn.disabled = false; }
+    });
+
+    dislikeBtn.addEventListener('click', async () => {
+      if (!currentVideoId) return;
+      dislikeBtn.disabled = true;
+      try {
+        const statsRef = doc(db, 'videoStats', statsDocId(currentVideoId));
+        if (!hasDisliked) {
+          // 低評価を追加
+          await updateDoc(statsRef, { dislikes: increment(1) });
+          dislikeCountEl.textContent = (parseInt(dislikeCountEl.textContent, 10) || 0) + 1;
+          dislikeBtn.classList.add('active-dislike');
+          hasDisliked = true;
+          
+          // もし高評価が押されていたら解除する
+          if (hasLiked) {
+            await updateDoc(statsRef, { likes: increment(-1) });
+            likeCountEl.textContent = Math.max(0, (parseInt(likeCountEl.textContent, 10) || 0) - 1);
+            likeBtn.classList.remove('active-like');
+            hasLiked = false;
+          }
+        } else {
+          // 低評価を解除
+          await updateDoc(statsRef, { dislikes: increment(-1) });
+          dislikeCountEl.textContent = Math.max(0, (parseInt(dislikeCountEl.textContent, 10) || 0) - 1);
+          dislikeBtn.classList.remove('active-dislike');
+          hasDisliked = false;
+        }
+      } catch (error) {} 
+      finally { dislikeBtn.disabled = false; }
+    });
+
+    // ==========================================
+    // 通常コメント機能
+    // ==========================================
+    commentInput.addEventListener('input', () => commentSubmitBtn.disabled = commentInput.value.trim() === "");
+
+    commentSubmitBtn.addEventListener('click', async () => {
+      const text = commentInput.value.trim();
+      if (!text) return;
+      commentInput.value = ""; commentSubmitBtn.disabled = true;
+      try {
+        await addDoc(collection(db, "comments"), {
+          videoId: currentVideoId, text: text, author: getNickname(), authorUid: getAuthorUid(), type: "normal", createdAt: serverTimestamp()
+        });
+      } catch (error) {}
+    });
+
+    commentList.addEventListener('click', async (e) => {
+      if (!e.target.classList.contains('comment-delete-btn')) return;
+      if (!confirm('このコメントを削除しますか？')) return;
+      try { await deleteDoc(doc(db, 'comments', e.target.dataset.id)); } catch (error) {}
+    });
+
+    // ==========================================
+    // 弾幕機能
+    // ==========================================
+    danmakuInput.addEventListener('input', () => danmakuSubmitBtn.disabled = danmakuInput.value.trim() === "");
+
+    danmakuSubmitBtn.addEventListener('click', async () => {
+      const text = danmakuInput.value.trim();
+      if (!text) return;
+      danmakuInput.value = ""; danmakuSubmitBtn.disabled = true;
+      try {
+        await addDoc(collection(db, "comments"), {
+          videoId: currentVideoId, text: text, author: getNickname(), authorUid: getAuthorUid(), type: "danmaku", videoTime: mainVideo.currentTime, createdAt: serverTimestamp()
+        });
+      } catch (error) {}
+    });
+
+    function loadComments() {
+      if (unsubscribeComments) unsubscribeComments();
+      commentList.innerHTML = "<p>読み込み中...</p>";
+      const q = query(collection(db, "comments"), where("videoId", "==", currentVideoId));
+
+      unsubscribeComments = onSnapshot(q, (snapshot) => {
+        videoComments = [];
+        const comments = [];
+        snapshot.forEach((docSnap) => {
+          const data = { id: docSnap.id, ...docSnap.data() };
+          if (data.type === "danmaku") { videoComments.push(data); } else { comments.push(data); }
+        });
+
+        comments.sort((a, b) => {
+          const timeA = a.createdAt ? a.createdAt.toMillis() : Date.now();
+          const timeB = b.createdAt ? b.createdAt.toMillis() : Date.now();
+          return timeB - timeA;
+        });
+
+        commentList.innerHTML = "";
+        if (comments.length === 0) {
+          commentList.innerHTML = "<p style='color:#606060; font-size:14px;'>最初のコメントを書き込みましょう！</p>"; return;
+        }
+
+        comments.forEach(comment => {
+          const date = comment.createdAt ? new Date(comment.createdAt.toMillis()).toLocaleDateString() : '送信中...';
+          const author = comment.author || 'ゲスト';
+          const canDelete = currentUser && comment.authorUid && currentUser.uid === comment.authorUid;
+
+          const div = document.createElement('div');
+          div.className = 'comment-item';
+          div.innerHTML = `
+            <div class="comment-avatar">${escapeHtml(author.charAt(0).toUpperCase())}</div>
+            <div class="comment-content">
+              <div class="comment-author">${escapeHtml(author)} <span class="comment-date">${date}</span></div>
+              <div class="comment-text">${escapeHtml(comment.text)}</div>
+              ${canDelete ? `<button class="comment-delete-btn" data-id="${comment.id}">削除</button>` : ''}
+            </div>
+          `;
+          commentList.appendChild(div);
+        });
+      });
+    }
+
+    mainVideo.addEventListener('timeupdate', () => {
+      const currentTime = mainVideo.currentTime;
+      if (currentTime < lastTime) { lastTime = currentTime; return; }
+      videoComments.forEach(comment => {
+        if (comment.videoTime !== undefined && comment.videoTime >= lastTime && comment.videoTime < currentTime) {
+          shootDanmaku(comment.text);
+        }
+      });
+      lastTime = currentTime;
+    });
+
+    function shootDanmaku(text) {
+      const span = document.createElement('span');
+      span.className = 'danmaku-comment';
+      span.textContent = text;
+      span.style.top = (Math.floor(Math.random() * 80) + 5) + '%';
+      danmakuContainer.appendChild(span);
+      span.addEventListener('animationend', () => span.remove());
+    }
+
+    // ==========================================
+    // アップロード用モーダルの動き ＋ サムネイル
+    // ==========================================
+    createBtn.addEventListener('click', () => createMenu.classList.toggle('active'));
+    uploadMenuBtn.addEventListener('click', () => {
+      createMenu.classList.remove('active');
+      uploadModal.classList.add('active');
+      step1Area.style.display = 'flex'; step2Area.style.display = 'none';
+      fileInput.value = ''; thumbInput.value = '';
+    });
+    closeModalBtn.addEventListener('click', () => uploadModal.classList.remove('active'));
+    selectFileBtn.addEventListener('click', () => fileInput.click());
+
+    let selectedFile = null;
+    fileInput.addEventListener('change', (event) => {
+      selectedFile = event.target.files[0];
+      if (selectedFile) {
+        videoTitleInput.value = selectedFile.name.split('.').slice(0, -1).join('.') || selectedFile.name;
+        previewFileName.textContent = selectedFile.name;
+        previewVideo.src = URL.createObjectURL(selectedFile);
+        step1Area.style.display = 'none'; step2Area.style.display = 'flex';
+      }
+    });
+
+    backModalBtn.addEventListener('click', () => {
+      step2Area.style.display = 'none'; step1Area.style.display = 'flex';
+      fileInput.value = ''; thumbInput.value = ''; selectedFile = null;
+    });
+
+    saveBtn.addEventListener('click', async () => {
+      if (!selectedFile) return;
+      saveBtn.disabled = true;
+      
+      let finalThumbUrl = "";
+      
+      if (thumbInput.files && thumbInput.files[0]) {
+        saveBtn.textContent = 'サムネイル送信中...';
+        try {
+          const thumbFile = thumbInput.files[0];
+          const thumbRef = ref(storage, 'thumbnails/' + Date.now() + '_' + thumbFile.name);
+          await uploadBytes(thumbRef, thumbFile);
+          finalThumbUrl = await getDownloadURL(thumbRef);
+        } catch (error) {
+          console.error("サムネエラー", error);
+        }
+      }
+
+      const storageRef = ref(storage, 'videos/' + selectedFile.name);
+      
+      const metadata = { 
+        customMetadata: { 
+          title: videoTitleInput.value, 
+          uploaderUid: getAuthorUid() || '',
+          uploaderName: getNickname(),
+          thumbUrl: finalThumbUrl
+        } 
+      };
+      
+      const uploadTask = uploadBytesResumable(storageRef, selectedFile, metadata);
+
+      uploadTask.on('state_changed',
+        (snapshot) => {
+          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          saveBtn.textContent = '動画送信中... ' + Math.floor(progress) + '%';
+        },
+        (error) => {
+          alert('エラーが発生しました。');
+          saveBtn.textContent = '保存して公開'; saveBtn.disabled = false;
+        },
+        () => {
+          getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+            uploadModal.classList.remove('active');
+            saveBtn.textContent = '保存して公開'; saveBtn.disabled = false;
+            watchVideo({ url: downloadURL, title: videoTitleInput.value, itemRef: uploadTask.snapshot.ref, uploaderName: getNickname(), uploaderUid: getAuthorUid() });
+            loadVideoList();
+          });
+        }
+      );
+    });
+  </script>
+</body>
+</html>
