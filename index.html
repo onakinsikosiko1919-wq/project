@@ -149,10 +149,16 @@
       text-shadow: 1px 1px 2px #000, -1px 1px 2px #000, 1px -1px 2px #000, -1px -1px 2px #000;
       animation: slideText 5s linear forwards;
     }
-    @keyframes slideText {
+   @keyframes slideText {
       0% { left: 100%; transform: translateX(0); }
       100% { left: 0; transform: translateX(-100%); }
     }
+    
+    /* ↓↓↓ ここから追加：動画停止時に弾幕のアニメーションを止める ↓↓↓ */
+    .danmaku-container.is-paused .danmaku-comment {
+      animation-play-state: paused;
+    }
+    /* ↑↑↑ ここまで追加 ↑↑↑ */
     .danmaku-input-area { display: flex; gap: 8px; margin-bottom: 24px; }
     .danmaku-input-area input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 20px; font-size: 14px; }
     .danmaku-input-area button { background-color: #065fd4; color: white; border: none; padding: 10px 20px; border-radius: 20px; font-weight: bold; cursor: pointer; }
@@ -1090,7 +1096,7 @@
       });
     }
 
-    mainVideo.addEventListener('timeupdate', () => {
+   mainVideo.addEventListener('timeupdate', () => {
       const currentTime = mainVideo.currentTime;
       if (currentTime < lastTime) { lastTime = currentTime; return; }
       videoComments.forEach(comment => {
@@ -1100,6 +1106,15 @@
       });
       lastTime = currentTime;
     });
+
+    // ↓↓↓ ここから追加：動画と連動して弾幕の動きをコントロール ↓↓↓
+    mainVideo.addEventListener('pause', () => {
+      danmakuContainer.classList.add('is-paused');
+    });
+    mainVideo.addEventListener('play', () => {
+      danmakuContainer.classList.remove('is-paused');
+    });
+    // ↑↑↑ ここまで追加 ↑↑↑
 
     function shootDanmaku(text) {
       const span = document.createElement('span');
