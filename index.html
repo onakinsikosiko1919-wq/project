@@ -187,6 +187,12 @@
       .modal-content { width: 95%; height: 90vh; }
       .video-title { font-size: 16px; }
 
+      /* チャンネル登録ボタン */
+      .subscribe-btn { background-color: #0f0f0f; color: white; border: none; padding: 10px 16px; border-radius: 20px; font-weight: bold; font-size: 14px; cursor: pointer; transition: background-color 0.2s; margin-left: 12px; }
+      .subscribe-btn:hover { background-color: #272727; }
+      .subscribe-btn.subscribed { background-color: #f2f2f2; color: #0f0f0f; }
+      .subscribe-btn.subscribed:hover { background-color: #e5e5e5; }
+
       /* チャンネルヘッダーのスマホ対応 */
       .channel-header { flex-direction: column; text-align: center; justify-content: center; }
       #channelAvatarHeader { margin: 0 auto; width: 80px; height: 80px; font-size: 32px; }
@@ -254,7 +260,8 @@
             <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
               <div id="uploaderAvatar" style="width: 36px; height: 36px; border-radius: 50%; background-color: #ccc; background-size: cover; background-position: center; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 16px; cursor: pointer;"></div>
               <div id="uploaderName" class="uploader-link" style="margin-bottom: 0;">チャンネル名</div>
-              <button id="blockUserBtn" class="rate-btn" style="font-size: 12px; padding: 4px 10px; display: none;">🚫 ブロック</button>
+                  <button id="subscribeBtn" class="subscribe-btn" style="display: none;">チャンネル登録</button>
+                  <button id="blockUserBtn" class="rate-btn" style="font-size: 12px; padding: 4px 10px; display: none;">🚫 ブロック</button>
             </div>
           </div>
           <div class="meta-actions">
@@ -395,7 +402,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getStorage, ref, uploadBytes, uploadBytesResumable, getDownloadURL, listAll, getMetadata, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+    import { getFirestore, collection, addDoc, query, where, onSnapshot, serverTimestamp, doc, getDoc, setDoc, updateDoc, deleteDoc, increment, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     import { getFirestore, collection, addDoc, query, where, onSnapshot, serverTimestamp, doc, getDoc, setDoc, updateDoc, deleteDoc, increment, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
@@ -660,7 +667,8 @@
       if (user) {
         let channelName = 'ゲストチャンネル';
         let avatarUrl = '';
-        currentUserBlocks = [];
+        currentUserBlocks = snap.data().blockedUids || [];
+        currentUserSubscriptions = snap.data().subscribedTo || []; 
         try {
           const snap = await getDoc(doc(db, 'users', user.uid));
           if (snap.exists()) {
@@ -1372,6 +1380,67 @@
         saveCustomizeBtn.disabled = false;
       }
     });
+    // ==========================================
+    // チャンネル登録機能の処理
+    // ==========================================
+    const subscribeBtn = document.getElementById('subscribeBtn');
+
+    // 視聴画面を開いた時にボタンの状態を切り替える（watchVideo関数の代わりにここで監視）
+    const observer = new MutationObserver(() => {
+      const targetUid = uploaderNameEl.dataset.uid;
+      if (currentUser && targetUid && currentUser.uid !== targetUid) {
+        subscribeBtn.style.display = 'block';
+        subscribeBtn.dataset.targetUid = targetUid;
+        if (currentUserSubscriptions.includes(targetUid)) {
+          subscribeBtn.textContent = '登録済み';
+          subscribeBtn.classList.add('subscribed');
+        } else {
+          subscribeBtn.textContent = 'チャンネル登録';
+          subscribeBtn.classList.remove('subscribed');
+        }
+      } else {
+        subscribeBtn.style.display = 'none';
+      }
+    });
+    observer.observe(uploaderNameEl, { attributes: true, childList: true, characterData: true });
+
+    // ボタンをクリックした時の処理
+    if (subscribeBtn) {
+      subscribeBtn.addEventListener('click', async () => {
+        if (!currentUser) return alert('チャンネル登録するにはログインしてください。');
+        const targetUid = subscribeBtn.dataset.targetUid;
+        if (!targetUid) return;
+
+        subscribeBtn.disabled = true;
+        const userRef = doc(db, 'users', currentUser.uid);
+        const targetRef = doc(db, 'users', targetUid);
+
+        try {
+          if (currentUserSubscriptions.includes(targetUid)) {
+            // ▼ 登録解除の処理
+            await updateDoc(userRef, { subscribedTo: arrayRemove(targetUid) });
+            await updateDoc(targetRef, { subscriberCount: increment(-1) });
+            
+            currentUserSubscriptions = currentUserSubscriptions.filter(id => id !== targetUid);
+            subscribeBtn.textContent = 'チャンネル登録';
+            subscribeBtn.classList.remove('subscribed');
+          } else {
+            // ▼ チャンネル登録の処理
+            await updateDoc(userRef, { subscribedTo: arrayUnion(targetUid) });
+            await updateDoc(targetRef, { subscriberCount: increment(1) });
+            
+            currentUserSubscriptions.push(targetUid);
+            subscribeBtn.textContent = '登録済み';
+            subscribeBtn.classList.add('subscribed');
+          }
+        } catch (error) {
+          console.error(error);
+          alert('処理に失敗しました。');
+        } finally {
+          subscribeBtn.disabled = false;
+        }
+      });
+    }
 
   </script>
 </body>
