@@ -8,7 +8,6 @@
   <style>
     body { margin: 0; font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f9f9f9; color: #0f0f0f; }
     
-    /* ▼ 修正：ヘッダーの高さを固定し、はみ出しを防止 ▼ */
     header { display: flex; justify-content: space-between; align-items: center; padding: 0 24px; height: 64px; box-sizing: border-box; background-color: white; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100;}
     
     .logo { font-size: 20px; font-weight: bold; cursor: pointer; flex-shrink: 0; }
@@ -32,14 +31,13 @@
     #channelNameDisplay { font-weight: bold; font-size: 14px; cursor: pointer; }
     #channelNameDisplay:hover { text-decoration: underline; }
 
-    /* ▼ 修正：サイドバーがヘッダーの真下(64px)からスタートするように調整 ▼ */
     .side-nav { position: fixed; top: 64px; left: 0; bottom: 0; width: 240px; background-color: white; padding: 12px 0; z-index: 50; overflow-y: auto; }
     .nav-item { display: flex; align-items: center; padding: 10px 24px; cursor: pointer; gap: 16px; border-radius: 10px; margin: 0 12px 4px; color: #0f0f0f; }
     .nav-item:hover { background-color: #f2f2f2; }
     .nav-item.active { background-color: #f2f2f2; font-weight: bold; }
     .nav-item img { width: 24px; height: 24px; object-fit: contain; }
+    .nav-item-icon { font-size: 20px; width: 24px; text-align: center; } /* アイコン用スタイル */
     
-    /* ▼ 修正：メインコンテンツの高さ計算もヘッダー(64px)に合わせる ▼ */
     .main-content { margin-left: 240px; padding-top: 24px; min-height: calc(100vh - 64px); box-sizing: border-box; }
     body.watch-mode .side-nav { display: none; }
     body.watch-mode .main-content { margin-left: 0; padding-top: 0; }
@@ -81,6 +79,10 @@
     .google-btn:hover { background-color: #3367D6; }
 
     .home-container, .channel-container { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
+    
+    /* 履歴ページ用の見出し */
+    .page-title-heading { font-size: 24px; font-weight: bold; margin: 0 24px 20px; display: none; }
+
     .sort-controls { display: flex; justify-content: flex-start; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; padding: 0 24px; }
     .sort-btn { background-color: #f2f2f2; border: none; padding: 7px 16px; border-radius: 16px; font-size: 13px; font-weight: bold; color: #606060; cursor: pointer; }
     .sort-btn.active { background-color: #0f0f0f; color: white; }
@@ -206,11 +208,13 @@
       .nav-item { flex-direction: column; gap: 4px; margin: 0; padding: 8px 0; flex: 1; border-radius: 0; justify-content: center; }
       .nav-item span { font-size: 10px; }
       .nav-item img { width: 20px; height: 20px; }
+      .nav-item-icon { font-size: 18px; }
       .main-content { margin-left: 0; padding-top: 16px; padding-bottom: 60px; }
 
       .home-container, .channel-container { padding: 0; margin-top: 0; }
       .category-filter-bar { padding: 0 16px 12px; }
       .sort-controls, .video-grid { padding: 0 16px; }
+      .page-title-heading { margin: 0 16px 16px; }
       
       .video-grid { grid-template-columns: 1fr; gap: 24px; }
       .grid-item { margin: 0; padding-bottom: 8px; border-bottom: 1px solid #e5e5e5; }
@@ -262,19 +266,27 @@
 
   <nav class="side-nav" id="sideNav">
     <div class="nav-item active" id="navHomeBtn">
-      <img src="スクリーンショット 2026-07-11 113437.jpg" alt="🏠">
+      <img src="スクリーンショット 2026-07-11 113437.jpg" alt="ホーム">
       <span>ホーム</span>
     </div>
     <div class="nav-item" id="navSubscriptionsBtn">
-      <img src="スクリーンショット 2026-07-11 113654.png" alt="📺">
+      <img src="スクリーンショット 2026-07-11 113654.png" alt="登録チャンネル">
       <span>登録チャンネル</span>
+    </div>
+    <!-- ▼ 履歴ボタンを追加 ▼ -->
+    <div class="nav-item" id="navHistoryBtn">
+      <span class="nav-item-icon">🕒</span>
+      <span>履歴</span>
     </div>
   </nav>
 
   <div class="main-content" id="mainContent">
     <div id="homeScreen" class="home-container">
       
-      <div class="category-filter-bar">
+      <!-- 履歴ページ用の見出しを追加 -->
+      <h2 id="pageTitleHeading" class="page-title-heading">履歴</h2>
+
+      <div class="category-filter-bar" id="categoryFilterBar">
         <button class="category-btn active" data-cat="すべて">すべて</button>
         <button class="category-btn" data-cat="エンタメ">エンタメ</button>
         <button class="category-btn" data-cat="漫画">漫画</button>
@@ -287,7 +299,7 @@
         <button class="category-btn" data-cat="その他">その他</button>
       </div>
 
-      <div class="sort-controls">
+      <div class="sort-controls" id="sortControlsArea">
         <button id="sortNewestBtn" class="sort-btn active">新着順</button>
         <button id="sortPopularBtn" class="sort-btn">人気順</button>
       </div>
@@ -394,7 +406,6 @@
               <label>サムネイル画像 (任意)</label>
               <input type="file" id="thumbInput" accept="image/*">
             </div>
-            
             <div class="input-group">
               <label>カテゴリー</label>
               <select id="videoCategoryInput">
@@ -409,7 +420,6 @@
                 <option value="その他">その他</option>
               </select>
             </div>
-            
           </div>
           <div class="preview-area">
             <video id="previewVideo" controls></video>
@@ -579,16 +589,27 @@
     let currentFeed = 'all'; 
     let currentCategory = 'すべて';
 
+    // ▼ 視聴履歴をローカルストレージから取得 ▼
+    let watchHistory = JSON.parse(localStorage.getItem('delectare_history')) || [];
+
     const navHomeBtn = document.getElementById('navHomeBtn');
     const navSubscriptionsBtn = document.getElementById('navSubscriptionsBtn');
+    const navHistoryBtn = document.getElementById('navHistoryBtn');
 
-    navHomeBtn.addEventListener('click', () => {
-      currentFeed = 'all'; navHomeBtn.classList.add('active'); navSubscriptionsBtn.classList.remove('active'); goHome();
-    });
+    function setActiveNav(feedType) {
+      navHomeBtn.classList.toggle('active', feedType === 'all');
+      navSubscriptionsBtn.classList.toggle('active', feedType === 'subscriptions');
+      navHistoryBtn.classList.toggle('active', feedType === 'history');
+    }
 
+    navHomeBtn.addEventListener('click', () => { currentFeed = 'all'; setActiveNav('all'); goHome(); });
     navSubscriptionsBtn.addEventListener('click', () => {
       if (!currentUser) return alert('登録したチャンネルを見るにはログインしてください。');
-      currentFeed = 'subscriptions'; navSubscriptionsBtn.classList.add('active'); navHomeBtn.classList.remove('active'); goHome();
+      currentFeed = 'subscriptions'; setActiveNav('subscriptions'); goHome();
+    });
+    // 履歴ボタンのイベント
+    navHistoryBtn.addEventListener('click', () => {
+      currentFeed = 'history'; setActiveNav('history'); goHome();
     });
 
     const loginOpenBtn = document.getElementById('loginOpenBtn');
@@ -748,6 +769,29 @@
     async function applyFilterAndSort() {
       const keyword = searchInput.value.trim().toLowerCase();
       let list = allVideos.filter(v => !currentUserBlocks.includes(v.uploaderUid));
+      
+      const categoryFilterBar = document.getElementById('categoryFilterBar');
+      const sortControlsArea = document.getElementById('sortControlsArea');
+      const pageTitleHeading = document.getElementById('pageTitleHeading');
+
+      if (currentFeed === 'history') {
+        // 履歴画面の場合は、フィルターやソートを隠す
+        categoryFilterBar.style.display = 'none';
+        sortControlsArea.style.display = 'none';
+        pageTitleHeading.style.display = 'block'; // 見出しを表示
+        
+        // 履歴の順番通りにリストを再構成する
+        let historyList = watchHistory.map(id => list.find(v => v.itemRef.fullPath === id)).filter(v => v);
+        if (keyword) historyList = historyList.filter(v => v.title.toLowerCase().includes(keyword));
+        renderGrid(historyList, videoGrid);
+        return;
+      } 
+      
+      // ホームまたは登録チャンネルの場合
+      categoryFilterBar.style.display = 'flex';
+      sortControlsArea.style.display = 'flex';
+      pageTitleHeading.style.display = 'none';
+
       if (currentFeed === 'subscriptions') list = list.filter(v => currentUserSubscriptions.includes(v.uploaderUid));
       if (currentCategory !== 'すべて') list = list.filter(v => v.category === currentCategory);
       if (keyword) list = list.filter(v => v.title.toLowerCase().includes(keyword));
@@ -766,7 +810,14 @@
 
     function renderGrid(list, container) {
       if (list.length === 0) {
-        container.innerHTML = currentFeed === 'subscriptions' ? '<p class="empty-list-msg" style="grid-column: 1/-1;">登録したチャンネルの動画がありません。</p>' : '<p class="empty-list-msg" style="grid-column: 1/-1;">動画が見つかりません。</p>'; return;
+        if (currentFeed === 'subscriptions') {
+          container.innerHTML = '<p class="empty-list-msg" style="grid-column: 1/-1;">登録したチャンネルの動画がありません。</p>';
+        } else if (currentFeed === 'history') {
+          container.innerHTML = '<p class="empty-list-msg" style="grid-column: 1/-1;">まだ視聴した動画がありません。</p>';
+        } else {
+          container.innerHTML = '<p class="empty-list-msg" style="grid-column: 1/-1;">動画が見つかりません。</p>';
+        }
+        return;
       }
       container.innerHTML = '';
       list.forEach(v => {
@@ -803,6 +854,13 @@
       document.body.classList.add('watch-mode'); homeScreen.style.display = 'none'; channelScreen.style.display = 'none'; watchScreen.style.display = 'block';
       mainVideo.src = videoData.url; mainTitle.textContent = videoData.title; uploaderNameEl.textContent = videoData.uploaderName; uploaderNameEl.dataset.uid = videoData.uploaderUid;
 
+      // 視聴履歴の保存処理（最大50件）
+      currentVideoId = videoData.itemRef.fullPath;
+      watchHistory = watchHistory.filter(id => id !== currentVideoId); // 重複を削除
+      watchHistory.unshift(currentVideoId); // 一番上に追加
+      if (watchHistory.length > 50) watchHistory.pop(); // 50件を超えたら古いものを消す
+      localStorage.setItem('delectare_history', JSON.stringify(watchHistory));
+
       if (videoData.uploaderUid && videoData.uploaderUid !== "null" && videoData.uploaderUid !== "undefined") {
         try {
           const uploaderSnap = await getDoc(doc(db, 'users', videoData.uploaderUid));
@@ -814,7 +872,7 @@
         } catch (e) { uploaderAvatarEl.style.backgroundImage = 'none'; uploaderAvatarEl.textContent = videoData.uploaderName.charAt(0).toUpperCase(); subCountEl.textContent = 'チャンネル登録者数 0人'; }
       } else { uploaderAvatarEl.style.backgroundImage = 'none'; uploaderAvatarEl.textContent = 'ゲ'; subCountEl.textContent = ''; }
       
-      window.scrollTo({ top: 0, behavior: 'smooth' }); mainVideo.play(); currentVideoId = videoData.itemRef.fullPath;
+      window.scrollTo({ top: 0, behavior: 'smooth' }); mainVideo.play(); 
       
       commentInput.value = ""; commentInput.style.height = '38px'; commentSubmitBtn.disabled = true;
       danmakuContainer.innerHTML = ''; videoComments = []; lastTime = 0; danmakuInput.value = ""; danmakuSubmitBtn.disabled = true;
@@ -823,7 +881,7 @@
       blockUserBtn.style.display = (currentUser && currentUser.uid !== videoData.uploaderUid) ? 'block' : 'none';
     }
 
-    logoHome.addEventListener('click', () => { currentFeed = 'all'; navHomeBtn.classList.add('active'); navSubscriptionsBtn.classList.remove('active'); goHome(); });
+    logoHome.addEventListener('click', () => { currentFeed = 'all'; setActiveNav('all'); goHome(); });
 
     function goHome() {
       document.body.classList.remove('watch-mode'); uploadModal.classList.remove('active'); createMenu.classList.remove('active'); watchScreen.style.display = 'none'; channelScreen.style.display = 'none'; homeScreen.style.display = 'block';
