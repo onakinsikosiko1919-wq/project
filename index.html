@@ -1060,7 +1060,23 @@ function translateAuthError(code) {
     }
 
     createBtn.addEventListener('click', () => createMenu.classList.toggle('active'));
-    uploadMenuBtn.addEventListener('click', () => { createMenu.classList.remove('active'); uploadModal.classList.add('active'); step1Area.style.display = 'flex'; step2Area.style.display = 'none'; fileInput.value = ''; thumbInput.value = ''; });
+   // アップロードボタンのイベントリスナー（修正箇所）
+uploadMenuBtn.addEventListener('click', () => {
+  // ▼ ここを追加：ログインしていない場合は弾く
+  if (!currentUser) {
+    alert("動画をアップロードするにはログインが必要です。");
+    authModal.classList.add('active'); // ログイン画面を出す
+    return;
+  }
+  // ▲ ここまで
+
+  createMenu.classList.remove('active');
+  uploadModal.classList.add('active');
+  step1Area.style.display = 'flex';
+  step2Area.style.display = 'none';
+  fileInput.value = '';
+  thumbInput.value = '';
+});
     closeModalBtn.addEventListener('click', () => uploadModal.classList.remove('active'));
     selectFileBtn.addEventListener('click', () => fileInput.click());
 
