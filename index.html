@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>デレクターレ（Delectare） | 世界最大のカルチャー動画共有サイト</title>
   <meta name="description" content="デレクターレは、誰でも動画をアップロードして弾幕コメントを楽しめる、新しい動画共有プラットフォームです。">
+  <script src="https://cdn.jsdelivr.net/npm/fuse.js/dist/fuse.js"></script>
   <style>
     body { margin: 0; font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f9f9f9; color: #0f0f0f; }
     
@@ -823,7 +824,20 @@ function translateAuthError(code) {
         
         // 履歴の順番通りにリストを再構成する
         let historyList = watchHistory.map(id => list.find(v => v.itemRef.fullPath === id)).filter(v => v);
-        if (keyword) historyList = historyList.filter(v => v.title.toLowerCase().includes(keyword));
+       // キーワードがある場合のみFuse.jsで検索
+if (keyword) {
+  // Fuse.jsの設定
+  const fuseOptions = {
+    keys: ['title', 'uploaderName', 'category'], // 検索対象
+    threshold: 0.4, // 0.0が完全一致、1.0が何でもあり。0.4くらいが「少しの打ち間違い」を許容する良いライン
+  };
+  
+  const fuse = new Fuse(list, fuseOptions);
+  const result = fuse.search(keyword);
+  
+  // Fuse.jsの検索結果（itemの中身）だけを取り出してリストを上書き
+  list = result.map(res => res.item);
+}
         renderGrid(historyList, videoGrid);
         return;
       } 
