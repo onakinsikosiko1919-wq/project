@@ -32,6 +32,43 @@
     .header-search-bar input:focus { border: 1px solid #065fd4; }
     .header-search-bar button { padding: 0 20px; background-color: #f8f8f8; border: 1px solid #ccc; border-left: none; border-radius: 0 20px 20px 0; cursor: pointer; font-size: 16px; }
     .header-search-bar button:hover { background-color: #f0f0f0; }
+    /* ▼ サジェスト機能のスタイル ▼ */
+.search-suggestions {
+  display: none; /* 最初は隠しておく */
+  position: absolute;
+  top: 100%; /* 検索バーのすぐ下にくっつける */
+  left: 0;
+  width: calc(100% - 60px); /* 検索ボタンの幅を抜いたサイズ */
+  background-color: white;
+  border: 1px solid #ccc;
+  border-top: none;
+  border-radius: 0 0 8px 8px; /* 下の角だけ丸くする */
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  z-index: 1000;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.suggest-item {
+  padding: 10px 20px;
+  font-size: 14px;
+  color: #0f0f0f;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.suggest-item:hover {
+  background-color: #f2f2f2;
+}
+
+.suggest-item::before {
+  content: '🔍'; /* YouTubeのように虫眼鏡アイコンを横に置く */
+  font-size: 12px;
+  color: #606060;
+}
+/* ▲ ここまで追加 ▲ */
 
     .header-actions { display: flex; align-items: center; gap: 16px; position: relative; flex-shrink: 0; }
     .create-btn { display: flex; align-items: center; gap: 8px; padding: 8px 16px; background-color: #f2f2f2; border: none; border-radius: 20px; font-size: 14px; font-weight: bold; cursor: pointer; }
@@ -263,11 +300,15 @@
   <div class="logo" id="logoHome">
     <img src="logo.png" alt="ロゴ" class="logo-img">
     デレクターレ（Delectare）
-  </div>
-    <div class="header-search-bar">
-      <input type="text" id="searchInput" placeholder="検索...">
-      <button id="searchBtn">🔍</button>
-    </div>
+ <!-- 元の header-search-bar に style="position: relative;" を追加 -->
+<div class="header-search-bar" style="position: relative;">
+  <input type="text" id="searchInput" placeholder="検索...">
+  <button id="searchBtn">🔍</button>
+  
+  <!-- ▼ ここから追加：サジェストボックス ▼ -->
+  <div id="searchSuggestions" class="search-suggestions"></div>
+  <!-- ▲ ここまで追加 ▲ -->
+</div>
     <div class="header-actions">
       <button id="createBtn" class="create-btn">＋ 作成</button>
       <div id="createMenu" class="dropdown-menu">
@@ -860,6 +901,75 @@ if (keyword) {
     }
 
     searchInput.addEventListener('input', () => { document.body.classList.remove('watch-mode'); homeScreen.style.display = 'block'; channelScreen.style.display = 'none'; watchScreen.style.display = 'none'; applyFilterAndSort(); });
+    // サジェストボックスの要素を取得
+const searchSuggestions = document.getElementById('searchSuggestions');
+
+// 1. 文字が入力されるたびにサジェストを計算して表示
+searchInput.addEventListener('input', (e) => {
+  const keyword = e.target.value.trim();
+  
+  // 入力が空になったら隠す
+  if (!keyword) {
+    searchSuggestions.style.display = 'none';
+    return;
+  }
+
+  // 導入済みの Fuse.js を使ってサジェスト候補を検索！
+  // サジェストは「タイトル」だけで検索するのが一般的です
+  const fuseOptions = {
+    keys: ['title'], 
+    threshold: 0.4, // タイポ許容度
+  };
+  const fuse = new Fuse(allVideos, fuseOptions);
+  const result = fuse.search(keyword);
+  
+  // 上位5件の動画を取り出す
+  const suggestions = result.slice(0, 5).map(res => res.item);
+
+  // 候補がない場合も隠す
+  if (suggestions.length === 0) {
+    searchSuggestions.style.display = 'none';
+    return;
+  }
+
+  // HTMLを組み立てて表示する（XSS対策でescapeHtmlを使用）
+  searchSuggestions.innerHTML = suggestions.map(v => 
+    `<div class="suggest-item" data-title="${escapeHtml(v.title)}">${escapeHtml(v.title)}</div>`
+  ).join('');
+  
+  searchSuggestions.style.display = 'block';
+});
+
+// 2. 表示されたサジェスト項目をクリックした時の処理
+searchSuggestions.addEventListener('click', (e) => {
+  const item = e.target.closest('.suggest-item');
+  if (!item) return;
+
+  // ① 検索バーにクリックしたタイトルを入れる
+  searchInput.value = item.dataset.title;
+  // ② サジェストボックスを消す
+  searchSuggestions.style.display = 'none';
+
+  // ③ 実際に検索を実行してホーム画面に結果を出す
+  document.body.classList.remove('watch-mode'); 
+  homeScreen.style.display = 'block'; 
+  channelScreen.style.display = 'none'; 
+  watchScreen.style.display = 'none'; 
+  applyFilterAndSort(); 
+});
+
+// 3. UIの改善：検索バーの外側をクリックしたらサジェストを隠す
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.header-search-bar')) {
+    searchSuggestions.style.display = 'none';
+  }
+});
+
+// 4. 検索ボタンを押した時や、Enterキーを押した時もサジェストを隠す
+document.getElementById('searchBtn').addEventListener('click', () => {
+  searchSuggestions.style.display = 'none';
+});
+// (既存の searchInput の inputイベントリスナーと競合しないように注意してください)
     sortNewestBtn.addEventListener('click', () => { currentSort = 'newest'; sortNewestBtn.classList.add('active'); sortPopularBtn.classList.remove('active'); applyFilterAndSort(); });
     sortPopularBtn.addEventListener('click', () => { currentSort = 'popular'; sortPopularBtn.classList.add('active'); sortNewestBtn.classList.remove('active'); applyFilterAndSort(); });
 
