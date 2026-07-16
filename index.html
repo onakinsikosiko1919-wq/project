@@ -11,64 +11,62 @@
     
     header { display: flex; justify-content: space-between; align-items: center; padding: 0 24px; height: 64px; box-sizing: border-box; background-color: white; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100;}
     
-   .logo { 
-  display: flex; 
-  align-items: center; 
-  gap: 8px; /* 画像と文字の間の隙間 */
-  font-size: 20px; 
-  font-weight: bold; 
-  cursor: pointer; 
-  flex-shrink: 0; 
-}
+    .logo { 
+      display: flex; 
+      align-items: center; 
+      gap: 8px;
+      font-size: 20px; 
+      font-weight: bold; 
+      cursor: pointer; 
+      flex-shrink: 0; 
+    }
 
-.logo-img { 
-  height: 28px; /* 画像の高さ。大きすぎる場合はこの数値を小さくしてください */
-  width: auto; 
-  object-fit: contain; 
-}
+    .logo-img { 
+      height: 28px;
+      width: auto; 
+      object-fit: contain; 
+    }
     
-    .header-search-bar { display: flex; flex: 1; max-width: 600px; margin: 0 24px; }
+    .header-search-bar { display: flex; flex: 1; max-width: 600px; margin: 0 24px; position: relative; }
     .header-search-bar input { flex: 1; padding: 10px 20px; border: 1px solid #ccc; border-right: none; border-radius: 20px 0 0 20px; font-size: 16px; outline: none; }
     .header-search-bar input:focus { border: 1px solid #065fd4; }
     .header-search-bar button { padding: 0 20px; background-color: #f8f8f8; border: 1px solid #ccc; border-left: none; border-radius: 0 20px 20px 0; cursor: pointer; font-size: 16px; }
     .header-search-bar button:hover { background-color: #f0f0f0; }
+
     /* ▼ サジェスト機能のスタイル ▼ */
-.search-suggestions {
-  display: none; /* 最初は隠しておく */
-  position: absolute;
-  top: 100%; /* 検索バーのすぐ下にくっつける */
-  left: 0;
-  width: calc(100% - 60px); /* 検索ボタンの幅を抜いたサイズ */
-  background-color: white;
-  border: 1px solid #ccc;
-  border-top: none;
-  border-radius: 0 0 8px 8px; /* 下の角だけ丸くする */
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-  z-index: 1000;
-  max-height: 300px;
-  overflow-y: auto;
-}
+    .search-suggestions {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: calc(100% - 60px);
+      background-color: white;
+      border: 1px solid #ccc;
+      border-top: none;
+      border-radius: 0 0 8px 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      z-index: 1000;
+      max-height: 300px;
+      overflow-y: auto;
+    }
 
-.suggest-item {
-  padding: 10px 20px;
-  font-size: 14px;
-  color: #0f0f0f;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
+    .suggest-item {
+      padding: 10px 20px;
+      font-size: 14px;
+      color: #0f0f0f;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
 
-.suggest-item:hover {
-  background-color: #f2f2f2;
-}
-
-.suggest-item::before {
-  content: '🔍'; /* YouTubeのように虫眼鏡アイコンを横に置く */
-  font-size: 12px;
-  color: #606060;
-}
-/* ▲ ここまで追加 ▲ */
+    .suggest-item:hover { background-color: #f2f2f2; }
+    .suggest-item::before {
+      content: '🔍';
+      font-size: 12px;
+      color: #606060;
+    }
+    /* ▲ サジェスト機能のスタイル ▲ */
 
     .header-actions { display: flex; align-items: center; gap: 16px; position: relative; flex-shrink: 0; }
     .create-btn { display: flex; align-items: center; gap: 8px; padding: 8px 16px; background-color: #f2f2f2; border: none; border-radius: 20px; font-size: 14px; font-weight: bold; cursor: pointer; }
@@ -88,7 +86,7 @@
     .nav-item:hover { background-color: #f2f2f2; }
     .nav-item.active { background-color: #f2f2f2; font-weight: bold; }
     .nav-item img { width: 24px; height: 24px; object-fit: contain; }
-    .nav-item-icon { font-size: 20px; width: 24px; text-align: center; } /* アイコン用スタイル */
+    .nav-item-icon { font-size: 20px; width: 24px; text-align: center; } 
     
     .main-content { margin-left: 240px; padding-top: 24px; min-height: calc(100vh - 64px); box-sizing: border-box; }
     body.watch-mode .side-nav { display: none; }
@@ -131,10 +129,7 @@
     .google-btn:hover { background-color: #3367D6; }
 
     .home-container, .channel-container { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
-    
-    /* 履歴ページ用の見出し */
     .page-title-heading { font-size: 24px; font-weight: bold; margin: 0 24px 20px; display: none; }
-
     .sort-controls { display: flex; justify-content: flex-start; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; padding: 0 24px; }
     .sort-btn { background-color: #f2f2f2; border: none; padding: 7px 16px; border-radius: 16px; font-size: 13px; font-weight: bold; color: #606060; cursor: pointer; }
     .sort-btn.active { background-color: #0f0f0f; color: white; }
@@ -297,20 +292,20 @@
 <body>
 
   <header>
- <!-- ロゴ部分 -->
-<div class="logo" id="logoHome">
-  <img src="logo.png" alt="ロゴ" class="logo-img">
-  デレクターレ（Delectare）
-</div>
- <!-- 元の header-search-bar に style="position: relative;" を追加 -->
-<div class="header-search-bar" style="position: relative;">
-  <input type="text" id="searchInput" placeholder="検索...">
-  <button id="searchBtn">🔍</button>
-  
-  <!-- ▼ ここから追加：サジェストボックス ▼ -->
-  <div id="searchSuggestions" class="search-suggestions"></div>
-  <!-- ▲ ここまで追加 ▲ -->
-</div>
+    <!-- ロゴ部分 -->
+    <div class="logo" id="logoHome">
+      <img src="logo.png" alt="ロゴ" class="logo-img">
+      デレクターレ（Delectare）
+    </div>
+
+    <!-- 検索バー部分 -->
+    <div class="header-search-bar">
+      <input type="text" id="searchInput" placeholder="検索...">
+      <button id="searchBtn">🔍</button>
+      <!-- サジェストボックス -->
+      <div id="searchSuggestions" class="search-suggestions"></div>
+    </div>
+    
     <div class="header-actions">
       <button id="createBtn" class="create-btn">＋ 作成</button>
       <div id="createMenu" class="dropdown-menu">
@@ -325,22 +320,16 @@
     </div>
   </header>
 
-  <!-- サイド/下部ナビゲーション部分 -->
-<nav class="side-nav" id="sideNav">
-  <div class="nav-item active" id="navHomeBtn">
-    <img src="icon-home.jpg" alt="ホーム">
-    <span>ホーム</span>
-  </div>
-  <div class="nav-item" id="navSubscriptionsBtn">
-    <img src="icon-sub.png" alt="登録チャンネル">
-    <span>登録チャンネル</span>
-  </div>
-  <div class="nav-item" id="navHistoryBtn">
-    <span class="nav-item-icon">🕒</span>
-    <span>履歴</span>
-  </div>
-</nav>
-    <!-- ▼ 履歴ボタンを追加 ▼ -->
+  <!-- サイドナビゲーション部分（重複を削除して整理） -->
+  <nav class="side-nav" id="sideNav">
+    <div class="nav-item active" id="navHomeBtn">
+      <img src="icon-home.png" alt="ホーム">
+      <span>ホーム</span>
+    </div>
+    <div class="nav-item" id="navSubscriptionsBtn">
+      <img src="icon-sub.png" alt="登録チャンネル">
+      <span>登録チャンネル</span>
+    </div>
     <div class="nav-item" id="navHistoryBtn">
       <span class="nav-item-icon">🕒</span>
       <span>履歴</span>
@@ -350,7 +339,7 @@
   <div class="main-content" id="mainContent">
     <div id="homeScreen" class="home-container">
       
-      <!-- 履歴ページ用の見出しを追加 -->
+      <!-- 履歴ページ用の見出し -->
       <h2 id="pageTitleHeading" class="page-title-heading">履歴</h2>
 
       <div class="category-filter-bar" id="categoryFilterBar">
@@ -656,7 +645,6 @@
     let currentFeed = 'all'; 
     let currentCategory = 'すべて';
 
-    // ▼ 視聴履歴をローカルストレージから取得 ▼
     let watchHistory = JSON.parse(localStorage.getItem('delectare_history')) || [];
 
     const navHomeBtn = document.getElementById('navHomeBtn');
@@ -674,7 +662,6 @@
       if (!currentUser) return alert('登録したチャンネルを見るにはログインしてください。');
       currentFeed = 'subscriptions'; setActiveNav('subscriptions'); goHome();
     });
-    // 履歴ボタンのイベント
     navHistoryBtn.addEventListener('click', () => {
       currentFeed = 'history'; setActiveNav('history'); goHome();
     });
@@ -762,51 +749,50 @@
       }
     }
 
-   authSubmitBtn.addEventListener('click', async () => {
-  const email = authEmail.value.trim(); const password = authPassword.value;
-  if (!email || !password) return;
-  authSubmitBtn.disabled = true; authErrorMsg.style.display = 'none';
-  try {
-    if (authMode === 'signup') {
-      const channelName = authChannelName.value.trim() || 'ゲストチャンネル';
-      const cred = await createUserWithEmailAndPassword(auth, email, password);
-      await setDoc(doc(db, 'users', cred.user.uid), { channelName, email, createdAt: serverTimestamp(), subscriberCount: 0 });
-    } else { await signInWithEmailAndPassword(auth, email, password); }
-    authModal.classList.remove('active');
-  } catch (error) {
-    console.error('認証エラー:', error.code, error.message); // ← 本当の原因をコンソールに出す
-    authErrorMsg.textContent = translateAuthError(error.code); // ← 具体的な理由を表示する
-    authErrorMsg.style.display = 'block';
-  } finally { authSubmitBtn.disabled = false; }
-});
+    authSubmitBtn.addEventListener('click', async () => {
+      const email = authEmail.value.trim(); const password = authPassword.value;
+      if (!email || !password) return;
+      authSubmitBtn.disabled = true; authErrorMsg.style.display = 'none';
+      try {
+        if (authMode === 'signup') {
+          const channelName = authChannelName.value.trim() || 'ゲストチャンネル';
+          const cred = await createUserWithEmailAndPassword(auth, email, password);
+          await setDoc(doc(db, 'users', cred.user.uid), { channelName, email, createdAt: serverTimestamp(), subscriberCount: 0 });
+        } else { await signInWithEmailAndPassword(auth, email, password); }
+        authModal.classList.remove('active');
+      } catch (error) {
+        console.error('認証エラー:', error.code, error.message);
+        authErrorMsg.textContent = translateAuthError(error.code);
+        authErrorMsg.style.display = 'block';
+      } finally { authSubmitBtn.disabled = false; }
+    });
 
-// ★新規追加：エラーコードを分かりやすい日本語に変換する関数
-function translateAuthError(code) {
-  const map = {
-    'auth/email-already-in-use': 'このメールアドレスは既に登録されています。',
-    'auth/invalid-email': 'メールアドレスの形式が正しくありません。',
-    'auth/weak-password': 'パスワードは6文字以上にしてください。',
-    'auth/user-not-found': 'このメールアドレスのアカウントが見つかりません。',
-    'auth/wrong-password': 'パスワードが間違っています。',
-    'auth/invalid-credential': 'メールアドレスまたはパスワードが間違っています。',
-    'auth/too-many-requests': '試行回数が多すぎます。しばらく待ってから再試行してください。',
-    'auth/network-request-failed': 'ネットワークエラーです。通信環境を確認してください。',
-    'auth/operation-not-allowed': 'メール/パスワードでのログインが無効になっています。Firebaseコンソールの設定を確認してください。'
-  };
-  return map[code] || ('失敗しました。(' + code + ')');
-}
+    function translateAuthError(code) {
+      const map = {
+        'auth/email-already-in-use': 'このメールアドレスは既に登録されています。',
+        'auth/invalid-email': 'メールアドレスの形式が正しくありません。',
+        'auth/weak-password': 'パスワードは6文字以上にしてください。',
+        'auth/user-not-found': 'このメールアドレスのアカウントが見つかりません。',
+        'auth/wrong-password': 'パスワードが間違っています。',
+        'auth/invalid-credential': 'メールアドレスまたはパスワードが間違っています。',
+        'auth/too-many-requests': '試行回数が多すぎます。しばらく待ってから再試行してください。',
+        'auth/network-request-failed': 'ネットワークエラーです。通信環境を確認してください。',
+        'auth/operation-not-allowed': 'メール/パスワードでのログインが無効になっています。Firebaseコンソールの設定を確認してください。'
+      };
+      return map[code] || ('失敗しました。(' + code + ')');
+    }
 
-   googleAuthBtn.addEventListener('click', async () => {
-  try {
-    const result = await signInWithPopup(auth, googleProvider); const user = result.user; const userRef = doc(db, 'users', user.uid); const snap = await getDoc(userRef);
-    if (!snap.exists()) await setDoc(userRef, { channelName: user.displayName || 'Googleユーザー', email: user.email, createdAt: serverTimestamp(), subscriberCount: 0 });
-    authModal.classList.remove('active');
-  } catch (error) {
-    console.error('Googleログインエラー:', error.code, error.message);
-    authErrorMsg.textContent = translateAuthError(error.code);
-    authErrorMsg.style.display = 'block';
-  }
-});
+    googleAuthBtn.addEventListener('click', async () => {
+      try {
+        const result = await signInWithPopup(auth, googleProvider); const user = result.user; const userRef = doc(db, 'users', user.uid); const snap = await getDoc(userRef);
+        if (!snap.exists()) await setDoc(userRef, { channelName: user.displayName || 'Googleユーザー', email: user.email, createdAt: serverTimestamp(), subscriberCount: 0 });
+        authModal.classList.remove('active');
+      } catch (error) {
+        console.error('Googleログインエラー:', error.code, error.message);
+        authErrorMsg.textContent = translateAuthError(error.code);
+        authErrorMsg.style.display = 'block';
+      }
+    });
 
     logoutBtn.addEventListener('click', () => signOut(auth));
 
@@ -865,119 +851,111 @@ function translateAuthError(code) {
       const sortControlsArea = document.getElementById('sortControlsArea');
       const pageTitleHeading = document.getElementById('pageTitleHeading');
 
+      // 1. ベースとなるリストの準備（ホーム、登録チャンネル、履歴）
       if (currentFeed === 'history') {
-        // 履歴画面の場合は、フィルターやソートを隠す
         categoryFilterBar.style.display = 'none';
         sortControlsArea.style.display = 'none';
-        pageTitleHeading.style.display = 'block'; // 見出しを表示
-        
-        // 履歴の順番通りにリストを再構成する
-        let historyList = watchHistory.map(id => list.find(v => v.itemRef.fullPath === id)).filter(v => v);
-       // キーワードがある場合のみFuse.jsで検索
-if (keyword) {
-  // Fuse.jsの設定
-  const fuseOptions = {
-    keys: ['title', 'uploaderName', 'category'], // 検索対象
-    threshold: 0.4, // 0.0が完全一致、1.0が何でもあり。0.4くらいが「少しの打ち間違い」を許容する良いライン
-  };
-  
-  const fuse = new Fuse(list, fuseOptions);
-  const result = fuse.search(keyword);
-  
-  // Fuse.jsの検索結果（itemの中身）だけを取り出してリストを上書き
-  list = result.map(res => res.item);
-}
-        renderGrid(historyList, videoGrid);
-        return;
-      } 
-      
-      // ホームまたは登録チャンネルの場合
-      categoryFilterBar.style.display = 'flex';
-      sortControlsArea.style.display = 'flex';
-      pageTitleHeading.style.display = 'none';
+        pageTitleHeading.style.display = 'block';
+        list = watchHistory.map(id => list.find(v => v.itemRef.fullPath === id)).filter(v => v);
+      } else {
+        categoryFilterBar.style.display = 'flex';
+        sortControlsArea.style.display = 'flex';
+        pageTitleHeading.style.display = 'none';
+        if (currentFeed === 'subscriptions') list = list.filter(v => currentUserSubscriptions.includes(v.uploaderUid));
+        if (currentCategory !== 'すべて') list = list.filter(v => v.category === currentCategory);
+      }
 
-      if (currentFeed === 'subscriptions') list = list.filter(v => currentUserSubscriptions.includes(v.uploaderUid));
-      if (currentCategory !== 'すべて') list = list.filter(v => v.category === currentCategory);
-      if (keyword) list = list.filter(v => v.title.toLowerCase().includes(keyword));
+      // 2. Fuse.jsでキーワード検索（すべての画面で共通作動）
+      if (keyword) {
+        const fuseOptions = {
+          keys: ['title', 'uploaderName', 'category'], 
+          threshold: 0.4, 
+        };
+        const fuse = new Fuse(list, fuseOptions);
+        list = fuse.search(keyword).map(res => res.item);
+      }
 
-      if (currentSort === 'popular') {
+      // 3. ソートして表示
+      if (currentFeed === 'history') {
+         renderGrid(list, videoGrid); // 履歴は順番そのまま
+      } else if (currentSort === 'popular') {
         const withScore = await Promise.all(list.map(async (v) => {
           try { const statsSnap = await getDoc(doc(db, 'videoStats', statsDocId(v.itemRef.fullPath))); const data = statsSnap.exists() ? statsSnap.data() : { views: 0, likes: 0 }; return { ...v, score: (data.views || 0) + (data.likes || 0) * 3 }; } catch { return { ...v, score: 0 }; }
         }));
         withScore.sort((a, b) => b.score - a.score); renderGrid(withScore, videoGrid);
-      } else { renderGrid(list, videoGrid); }
+      } else { 
+        renderGrid(list, videoGrid); // 新着順
+      }
     }
 
-    searchInput.addEventListener('input', () => { document.body.classList.remove('watch-mode'); homeScreen.style.display = 'block'; channelScreen.style.display = 'none'; watchScreen.style.display = 'none'; applyFilterAndSort(); });
-    // サジェストボックスの要素を取得
-const searchSuggestions = document.getElementById('searchSuggestions');
+    // ========== 検索実行処理 ==========
+    function executeSearch() {
+      document.body.classList.remove('watch-mode'); 
+      homeScreen.style.display = 'block'; 
+      channelScreen.style.display = 'none'; 
+      watchScreen.style.display = 'none'; 
+      if(searchSuggestions) searchSuggestions.style.display = 'none';
+      applyFilterAndSort();
+    }
 
-// 1. 文字が入力されるたびにサジェストを計算して表示
-searchInput.addEventListener('input', (e) => {
-  const keyword = e.target.value.trim();
-  
-  // 入力が空になったら隠す
-  if (!keyword) {
-    searchSuggestions.style.display = 'none';
-    return;
-  }
+    // エンターキーを押した時に検索を実行
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        executeSearch();
+      }
+    });
 
-  // 導入済みの Fuse.js を使ってサジェスト候補を検索！
-  // サジェストは「タイトル」だけで検索するのが一般的です
-  const fuseOptions = {
-    keys: ['title'], 
-    threshold: 0.4, // タイポ許容度
-  };
-  const fuse = new Fuse(allVideos, fuseOptions);
-  const result = fuse.search(keyword);
-  
-  // 上位5件の動画を取り出す
-  const suggestions = result.slice(0, 5).map(res => res.item);
+    // 検索ボタンを押した時に検索を実行
+    document.getElementById('searchBtn').addEventListener('click', executeSearch);
 
-  // 候補がない場合も隠す
-  if (suggestions.length === 0) {
-    searchSuggestions.style.display = 'none';
-    return;
-  }
+    // ========== サジェスト機能処理 ==========
+    const searchSuggestions = document.getElementById('searchSuggestions');
+    
+    searchInput.addEventListener('input', (e) => {
+      const keyword = e.target.value.trim();
+      
+      if (!keyword) {
+        searchSuggestions.style.display = 'none';
+        return;
+      }
 
-  // HTMLを組み立てて表示する（XSS対策でescapeHtmlを使用）
-  searchSuggestions.innerHTML = suggestions.map(v => 
-    `<div class="suggest-item" data-title="${escapeHtml(v.title)}">${escapeHtml(v.title)}</div>`
-  ).join('');
-  
-  searchSuggestions.style.display = 'block';
-});
+      const fuseOptions = {
+        keys: ['title'], 
+        threshold: 0.4,
+      };
+      const fuse = new Fuse(allVideos, fuseOptions);
+      const result = fuse.search(keyword);
+      
+      const suggestions = result.slice(0, 5).map(res => res.item);
 
-// 2. 表示されたサジェスト項目をクリックした時の処理
-searchSuggestions.addEventListener('click', (e) => {
-  const item = e.target.closest('.suggest-item');
-  if (!item) return;
+      if (suggestions.length === 0) {
+        searchSuggestions.style.display = 'none';
+        return;
+      }
 
-  // ① 検索バーにクリックしたタイトルを入れる
-  searchInput.value = item.dataset.title;
-  // ② サジェストボックスを消す
-  searchSuggestions.style.display = 'none';
+      searchSuggestions.innerHTML = suggestions.map(v => 
+        `<div class="suggest-item" data-title="${escapeHtml(v.title)}">${escapeHtml(v.title)}</div>`
+      ).join('');
+      
+      searchSuggestions.style.display = 'block';
+    });
 
-  // ③ 実際に検索を実行してホーム画面に結果を出す
-  document.body.classList.remove('watch-mode'); 
-  homeScreen.style.display = 'block'; 
-  channelScreen.style.display = 'none'; 
-  watchScreen.style.display = 'none'; 
-  applyFilterAndSort(); 
-});
+    searchSuggestions.addEventListener('click', (e) => {
+      const item = e.target.closest('.suggest-item');
+      if (!item) return;
 
-// 3. UIの改善：検索バーの外側をクリックしたらサジェストを隠す
-document.addEventListener('click', (e) => {
-  if (!e.target.closest('.header-search-bar')) {
-    searchSuggestions.style.display = 'none';
-  }
-});
+      searchInput.value = item.dataset.title;
+      executeSearch();
+    });
 
-// 4. 検索ボタンを押した時や、Enterキーを押した時もサジェストを隠す
-document.getElementById('searchBtn').addEventListener('click', () => {
-  searchSuggestions.style.display = 'none';
-});
-// (既存の searchInput の inputイベントリスナーと競合しないように注意してください)
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.header-search-bar')) {
+        searchSuggestions.style.display = 'none';
+      }
+    });
+
+
     sortNewestBtn.addEventListener('click', () => { currentSort = 'newest'; sortNewestBtn.classList.add('active'); sortPopularBtn.classList.remove('active'); applyFilterAndSort(); });
     sortPopularBtn.addEventListener('click', () => { currentSort = 'popular'; sortPopularBtn.classList.add('active'); sortNewestBtn.classList.remove('active'); applyFilterAndSort(); });
 
@@ -1027,11 +1005,10 @@ document.getElementById('searchBtn').addEventListener('click', () => {
       document.body.classList.add('watch-mode'); homeScreen.style.display = 'none'; channelScreen.style.display = 'none'; watchScreen.style.display = 'block';
       mainVideo.src = videoData.url; mainTitle.textContent = videoData.title; uploaderNameEl.textContent = videoData.uploaderName; uploaderNameEl.dataset.uid = videoData.uploaderUid;
 
-      // 視聴履歴の保存処理（最大50件）
       currentVideoId = videoData.itemRef.fullPath;
-      watchHistory = watchHistory.filter(id => id !== currentVideoId); // 重複を削除
-      watchHistory.unshift(currentVideoId); // 一番上に追加
-      if (watchHistory.length > 50) watchHistory.pop(); // 50件を超えたら古いものを消す
+      watchHistory = watchHistory.filter(id => id !== currentVideoId);
+      watchHistory.unshift(currentVideoId);
+      if (watchHistory.length > 50) watchHistory.pop();
       localStorage.setItem('delectare_history', JSON.stringify(watchHistory));
 
       if (videoData.uploaderUid && videoData.uploaderUid !== "null" && videoData.uploaderUid !== "undefined") {
@@ -1209,23 +1186,19 @@ document.getElementById('searchBtn').addEventListener('click', () => {
     }
 
     createBtn.addEventListener('click', () => createMenu.classList.toggle('active'));
-   // アップロードボタンのイベントリスナー（修正箇所）
-uploadMenuBtn.addEventListener('click', () => {
-  // ▼ ここを追加：ログインしていない場合は弾く
-  if (!currentUser) {
-    alert("動画をアップロードするにはログインが必要です。");
-    authModal.classList.add('active'); // ログイン画面を出す
-    return;
-  }
-  // ▲ ここまで
-
-  createMenu.classList.remove('active');
-  uploadModal.classList.add('active');
-  step1Area.style.display = 'flex';
-  step2Area.style.display = 'none';
-  fileInput.value = '';
-  thumbInput.value = '';
-});
+    uploadMenuBtn.addEventListener('click', () => {
+      if (!currentUser) {
+        alert("動画をアップロードするにはログインが必要です。");
+        authModal.classList.add('active'); 
+        return;
+      }
+      createMenu.classList.remove('active');
+      uploadModal.classList.add('active');
+      step1Area.style.display = 'flex';
+      step2Area.style.display = 'none';
+      fileInput.value = '';
+      thumbInput.value = '';
+    });
     closeModalBtn.addEventListener('click', () => uploadModal.classList.remove('active'));
     selectFileBtn.addEventListener('click', () => fileInput.click());
 
